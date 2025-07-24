@@ -8,7 +8,26 @@
     ArrowRight,
     ArrowUp
   } from '@lucide/svelte';
-  
+
+  /** @typedef { Object } Key
+   * @property { string } [label]
+   * @property { import('svelte').Component } [icon]
+   * @property { string } [size]
+   * @property { string } [value]
+   * @property { Function } [action]
+  */
+
+  /** @typedef { Object } Layout
+   * @property { string } name
+   * @property { string } font
+   * @property { Page[] } pages
+  */
+
+  /** @typedef { Object } Page 
+   * @property { string } name
+   * @property { Key[][] } rows
+  */
+
   // intercept keyboard events and relay them (in case user REALLY wants to use their own keyboard, or maybe they're on desktop)
   // need letters (obviously), limited symbols, control, tab, escape, shift
   // no capital letters (shift is for symbols)
@@ -20,11 +39,13 @@
   // a s d f g h j k l { }
   // ^ , z x c v b n m . ✓
   // ? ^ v spaaaaace < > ×
+  /** @type { Layout } /*/
   let layout = {
     name: 'default',
     font: 'Geist Mono',
-    pages: {
-      default: {
+    pages: [
+      { 
+        name: 'default',
         rows: [
           [
             {
@@ -142,7 +163,8 @@
           ]
         ]
       }, 
-      shift: {
+      {
+        name: 'shift',
         rows: [
           [
             {
@@ -190,23 +212,27 @@
           ]
         ]
       }
-    }
+    ]
   };
   
-  let activePage = $state(layout.pages['default']);
+  /** @type { Page } */
+  let activePage = $state(layout.pages[0]);
   
   let key_gap = '16px';
   
   let { trigger } = $props();
   
+  /** @param { Key } key */
   function handleKeyPress(key) {
     key.action?.();
     if (key.value) {
       trigger(key.value)
     }
   }
+
+  /** @param { string } name */
   function setActivePage(name) {
-    activePage = layout.pages[name];
+    activePage = layout.pages.find(page => page.name === name) ?? layout.pages[0];
   }
 </script>
 
