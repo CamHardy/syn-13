@@ -1,4 +1,9 @@
 import { Scanner } from './scanner.js';
+import { AstPrinter } from './astPrinter.js';
+import { Expression } from './expression.js';
+import { Token } from './token.js';
+
+/** @import { ExpressionType } from './expression.js' } */
 
 let hadError = false;
 
@@ -7,8 +12,19 @@ function run(source) {
 	const scanner = new Scanner(source);
 	const tokens = scanner.scanTokens();
 
+	const expression = Expression.Binary(
+		Expression.Unary(
+			new Token('MINUS', '-', null, 1),
+			Expression.Literal(123)),
+		new Token('STAR', '*', null, 1),
+		Expression.Grouping(
+			Expression.Literal(45.67)
+		)
+	);
+
 	// for now just print the tokens
 	console.log(tokens);
+	console.log(AstPrinter.print(expression));
 }
 
 /**
@@ -31,7 +47,7 @@ function report(line, where, message) {
 
 //TODO: run actual code
 //TODO: handle errors
-run('hello world');
+run('-123 * (45.67)');
 
 if (hadError) {
 	//TODO: exit process gracefully
