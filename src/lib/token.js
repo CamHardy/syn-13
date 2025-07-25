@@ -1,0 +1,18 @@
+export class Token {
+	/** 
+	 * @param { import('./tokenTypes').TokenType } type
+	 * @param { string } lexeme
+	 * @param { number | string | null } literal
+	 * @param { number } line
+	 */
+	constructor(type, lexeme, literal, line) {
+		this.type = type;
+		this.lexeme = lexeme;
+		this.literal = literal;
+		this.line = line;
+	}
+
+	toString() {
+		return `${this.type} ${this.lexeme} ${this.literal}`;
+	}
+}

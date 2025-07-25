@@ -16,7 +16,6 @@
 		"@sveltejs/kit": "^2.22.0",
 		"@sveltejs/vite-plugin-svelte": "^6.0.0",
 		"@tailwindcss/vite": "^4.0.0",
-		"lightningcss.android-arm64.node": "^1.29.3-1",
 		"svelte": "^5.0.0",
 		"svelte-check": "^4.0.0",
 		"tailwindcss": "^4.0.0",
@@ -26,5 +25,8 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^0.525.0"
+	},
+	"optionalDependencies": {
+		"lightningcss.android-arm64.node": "^1.29.3-1"
 	}
 }
