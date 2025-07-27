@@ -1,9 +1,11 @@
 import { System } from './system.js';
 import { Token } from './token.js';
 import { Expression } from './expression.js';
+import { Statement } from './statement.js';
 
 /** @import { TokenType } from './tokenTypes.js' */
 /** @import { ExpressionType } from './expression.js' */
+/** @import { StatementType } from './statement.js' */
 
 export class Parser {
 	#tokens;
@@ -14,18 +16,38 @@ export class Parser {
 		this.#tokens = tokens;
 	}
 
-	/** @returns { ExpressionType | null } */
+	/** @returns { StatementType[] | null } */
 	parse() {
-		try {
-			return this.#expression();
-		} catch (error) {
-			return null;
+		const statments = [];
+
+		while (!this.#isAtEnd()) {
+			statments.push(this.#statement());
 		}
+
+		return statments;
 	}
 
 	/** @returns { ExpressionType } */
 	#expression() {
 		return this.#equality();
+	}
+
+	#statement() {
+		if (this.#match('PRINT')) return this.#printStatement();
+
+		return this.#expressionStatement();
+	}
+
+	#printStatement() {
+		const value = this.#expression();
+		this.#consume('SEMICOLON', 'Expected ; after value.');
+		return Statement.Print(value);
+	}
+
+	#expressionStatement() {
+		const expression = this.#expression();
+		this.#consume('SEMICOLON', 'Expected ; after expression.');
+		return Statement.Expression(expression);
 	}
 
 	/** @returns { ExpressionType } */

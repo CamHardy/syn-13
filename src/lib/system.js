@@ -2,30 +2,29 @@ import { Scanner } from './scanner.js';
 import { Parser } from './parser.js';
 import { AstPrinter } from './astPrinter.js';
 import { Expression } from './expression.js';
+import { Interpreter, RuntimeError } from './interpreter.js';
 import { Token } from './token.js';
 
 /** @import { ExpressionType } from './expression.js' } */
+/** @import { StatementType } from './statement.js' } */
 
 export class System {
+	static #interpreter = new Interpreter();
 	static hadError = false;
+	static hadRuntimeError = false;
 
 	/** @param { string } source */
 	static run(source) {
 		const scanner = new Scanner(source);
 		const tokens = scanner.scanTokens();
 		const parser = new Parser(tokens);
-		const expression = parser.parse();
-		if (expression === null) {
-			this.hadError = true;
-		}
+		const statements = parser.parse();
 
-		if (this.hadError) {
+		if (statements === null || this.hadError) {
 			return;
 		}
 
-		// for now just print the tokens
-		console.log(tokens);
-		console.log(AstPrinter.print(/** @type { ExpressionType } */ (expression)));
+		this.#interpreter.interpret(statements);
 	}
 
 	/**
@@ -45,6 +44,12 @@ export class System {
 		}
 	}
 
+	/** @param { RuntimeError } error */
+	static runtimeError(error) {
+		console.error(`${error.message}\n[line ${error.token.line}]`);
+		this.hadRuntimeError = true;
+	}
+
 	/**
 	 * @param { number } line 
 	 * @param { string } where 
@@ -58,9 +63,10 @@ export class System {
 
 //TODO: run actual code
 //TODO: handle errors
-System.run('-123 * (45.67)');
+System.run(`print "one";
+	print true;
+	print 2 + 1;`);
 
-if (System.hadError) {
 	//TODO: exit process gracefully
-	console.error('I had an error :(');
-}
+if (System.hadError) console.error('I had an error :(');
+if (System.hadRuntimeError) console.error('I had a runtime error :(');
