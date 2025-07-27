@@ -2,7 +2,7 @@ export class Token {
 	/** 
 	 * @param { import('./tokenTypes').TokenType } type
 	 * @param { string } lexeme
-	 * @param { number | string | null } literal
+	 * @param { any } literal
 	 * @param { number } line
 	 */
 	constructor(type, lexeme, literal, line) {

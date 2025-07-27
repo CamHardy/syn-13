@@ -19,7 +19,7 @@
 /** 
  * @typedef { Object } Literal
  * @property { 'Literal' } type
- * @property { number | string | null } value
+ * @property { any } value
  */
 
 /** 
@@ -57,7 +57,7 @@ export class Expression {
 	}
 
 	/**
-	 * @param { number | string | null } value 
+	 * @param { any } value 
 	 * @returns { Literal }
 	 */
 	static Literal(value) {

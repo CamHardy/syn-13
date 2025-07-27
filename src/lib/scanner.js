@@ -1,8 +1,8 @@
+import { System } from './system.js';
 import { Token } from './token.js';
 import { Tokens } from './tokenTypes.js';
 
 export class Scanner {
-	/** @type { string } */
 	#source;
 	/** @type { Token[] } */
 	#tokens = [];
@@ -99,7 +99,7 @@ export class Scanner {
 				} else if (this.#isAlpha(c)) {
 					this.#identifier();
 				} else {
-					console.error(this.#line, 'Unexpected character.');
+					System.error(this.#line, 'Unexpected character.');
 				}
 				break;
 		}
@@ -135,7 +135,7 @@ export class Scanner {
 		}
 
 		if (this.#isAtEnd()) {
-			console.error(this.#line, 'Unterminated string.');
+			System.error(this.#line, 'Unterminated string.');
 			return;
 		}
 
