@@ -1,6 +1,7 @@
 /** @import { ExpressionType } from './expression.js' */
+/** @import { Token } from './token.js' */
 
-/** @typedef { Expression | Print } StatementType */
+/** @typedef { Expression | Print | Var } StatementType */
 
 /**
  * @typedef { Object } Expression
@@ -12,6 +13,13 @@
  * @typedef { Object } Print
  * @property { 'Print' } type
  * @property { ExpressionType } expression
+ */
+
+/**
+ * @typedef { Object } Var
+ * @property { 'Var' } type
+ * @property { Token } name
+ * @property { ExpressionType } initializer
  */
 
 export class Statement {
@@ -34,6 +42,19 @@ export class Statement {
 		return {
 			type: 'Print',
 			expression
+		}
+	}
+
+	/** 
+	 * @param { Token } name 
+	 * @param { ExpressionType } initializer 
+	 * @returns { Var }
+	*/
+	static Var(name, initializer) {
+		return {
+			type: 'Var',
+			name,
+			initializer
 		}
 	}
 }

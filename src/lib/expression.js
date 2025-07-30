@@ -1,6 +1,6 @@
 /** @import { Token } from './token.js' */
 
-/** @typedef { Binary | Grouping | Literal | Unary } ExpressionType */
+/** @typedef { Binary | Grouping | Literal | Unary | Variable } ExpressionType */
 
 /** 
  * @typedef { Object } Binary
@@ -27,6 +27,12 @@
  * @property { 'Unary' } type
  * @property { Token } operator
  * @property { ExpressionType } right
+ */
+
+/** 
+ * @typedef { Object } Variable
+ * @property { 'Variable' } type
+ * @property { Token } name
  */
 
 export class Expression {
@@ -78,5 +84,16 @@ export class Expression {
 			operator,
 			right
 		};
+	}
+
+	/** 
+	 * @param { Token } name 
+	 * @returns { Variable }
+	*/
+	static Variable(name) {
+		return {
+			type: 'Variable',
+			name
+		}
 	}
 }

@@ -16,12 +16,13 @@ export class Parser {
 		this.#tokens = tokens;
 	}
 
-	/** @returns { StatementType[] | null } */
+	/** @returns { (StatementType | null)[] } */
 	parse() {
+		/** @type { (StatementType | null)[] } */
 		const statments = [];
 
 		while (!this.#isAtEnd()) {
-			statments.push(this.#statement());
+			statments.push(this.#declaration());
 		}
 
 		return statments;
@@ -32,10 +33,32 @@ export class Parser {
 		return this.#equality();
 	}
 
+	#declaration() {
+		try {
+			if (this.#match('VAR')) return this.#varDeclaration();
+			return this.#statement();
+		} catch (error) {
+			this.#synchronize();
+			return null;
+		}
+	}
+
 	#statement() {
 		if (this.#match('PRINT')) return this.#printStatement();
 
 		return this.#expressionStatement();
+	}
+
+	#varDeclaration() {
+		const name = this.#consume('IDENTIFIER', 'Expected variable name.');
+	
+		let initializer = null;
+		if (this.#match('EQUAL')) {
+			initializer = this.#expression();
+		}
+	
+		this.#consume('SEMICOLON', 'Expected ; after variable declaration.');
+		return Statement.Var(name, /** @type { ExpressionType } */ (initializer));
 	}
 
 	#printStatement() {
@@ -121,6 +144,10 @@ export class Parser {
 
 		if (this.#match('NUMBER', 'STRING')) {
 			return Expression.Literal(this.#previous().literal);
+		}
+
+		if (this.#match('IDENTIFIER')) {
+			return Expression.Variable(this.#previous());
 		}
 
 		if (this.#match('LEFT_PAREN')) {

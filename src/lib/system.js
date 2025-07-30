@@ -24,7 +24,7 @@ export class System {
 			return;
 		}
 
-		this.#interpreter.interpret(statements);
+		this.#interpreter.interpret(/** @type { StatementType[] } */ (statements));
 	}
 
 	/**
