@@ -1,10 +1,13 @@
 import { System } from './system.js';
+import { Environment } from './environment.js';
 
 /** @import { Token } from './token.js' */
-/** @import { Literal, Grouping, Unary, Binary, ExpressionType } from './expression.js' */
-/** @import { Expression, Print, StatementType } from './statement.js' */
+/** @import { Literal, Grouping, Unary, Binary, Variable, ExpressionType } from './expression.js' */
+/** @import { Expression, Print, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
+	#environment = new Environment();
+
 	/** @param { StatementType[] } statements */
 	interpret(statements) {
 		try {
@@ -102,6 +105,23 @@ export class Interpreter {
 		console.log(this.#stringify(value));
 
 		return null;
+	}
+
+	/** @param { Var } node */
+	Var(node) {
+		let value = null;
+		if (node.initializer) {
+			value = this.#visit(node.initializer, this);
+		}
+
+		this.#environment.define(node.name.lexeme, value);
+
+		return null;
+	}
+
+	/** @param { Variable } node */
+	Variable(node) {
+		return this.#environment.get(node.name);
 	}
 
 	/**

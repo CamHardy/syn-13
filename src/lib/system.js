@@ -63,9 +63,9 @@ export class System {
 
 //TODO: run actual code
 //TODO: handle errors
-System.run(`print "one";
-	print true;
-	print 2 + 1;`);
+System.run(`var a = 1;
+	var b = 2;
+	print a + b;`);
 
 	//TODO: exit process gracefully
 if (System.hadError) console.error('I had an error :(');
