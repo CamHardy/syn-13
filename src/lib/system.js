@@ -63,9 +63,27 @@ export class System {
 
 //TODO: run actual code
 //TODO: handle errors
-System.run(`var a = 1;
-	var b = 2;
-	print a + b;`);
+System.run(`
+	var a = "global a";
+	var b = "global b";
+	var c = "global c";
+	{
+		var a = "outer a"; 
+		var b = "outer b";
+		{
+			var a = "inner a";
+			print a;
+			print b;
+			print c;
+		}
+		print a;
+		print b;
+		print c;
+	}
+	print a;
+	print b;
+	print c;
+`);
 
 	//TODO: exit process gracefully
 if (System.hadError) console.error('I had an error :(');

@@ -33,22 +33,25 @@ export class Parser {
 		return this.#assignment();
 	}
 
+	/** @returns { StatementType } */
 	#declaration() {
 		try {
 			if (this.#match('VAR')) return this.#varDeclaration();
 			return this.#statement();
 		} catch (error) {
 			this.#synchronize();
-			return null;
+			throw error;
 		}
 	}
 
 	#statement() {
 		if (this.#match('PRINT')) return this.#printStatement();
+		if (this.#match('LEFT_BRACE')) return Statement.Block(this.#block());
 
 		return this.#expressionStatement();
 	}
 
+	/** @returns { StatementType } */
 	#varDeclaration() {
 		const name = this.#consume('IDENTIFIER', 'Expected variable name.');
 	
@@ -71,6 +74,19 @@ export class Parser {
 		const expression = this.#expression();
 		this.#consume('SEMICOLON', 'Expected ; after expression.');
 		return Statement.Expression(expression);
+	}
+
+	/** @returns { StatementType[] } */
+	#block() {
+		const statements = [];
+
+		while (!this.#check('RIGHT_BRACE') && !this.#isAtEnd()) {
+			statements.push(this.#declaration());
+		}
+
+		this.#consume('RIGHT_BRACE', 'Expected } after block.');
+
+		return statements;
 	}
 
 	/** @returns { ExpressionType } */

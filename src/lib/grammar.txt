@@ -6,10 +6,12 @@ declaration -> variableDeclaration
 variableDeclaration -> 'var' IDENTIFIER ( '=' expression )? ';' ;
 
 statement -> expressionStatement
-					 | printStatement ;
+					 | printStatement 
+					 | block ;
 
 expressionStatement -> expression ';' ;
 printStatement -> 'print' expression ';' ;
+block -> '{' declaration* '}' ;
 
 expression -> assignment ;
 

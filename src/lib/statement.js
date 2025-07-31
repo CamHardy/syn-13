@@ -1,7 +1,13 @@
 /** @import { ExpressionType } from './expression.js' */
 /** @import { Token } from './token.js' */
 
-/** @typedef { Expression | Print | Var } StatementType */
+/** @typedef { Block | Expression | Print | Var } StatementType */
+
+/**
+ * @typedef { Object } Block
+ * @property { 'Block' } type
+ * @property { StatementType[] } statements
+ */
 
 /**
  * @typedef { Object } Expression
@@ -23,6 +29,16 @@
  */
 
 export class Statement {
+	/**
+	 * @param { StatementType[] } statements 
+	 * @returns { Block }
+	 */
+	static Block(statements) {
+		return {
+			type: 'Block',
+			statements
+		}
+	}
 	/** 
 	 * @param { ExpressionType } expression 
 	 * @returns { Expression }

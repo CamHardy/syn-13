@@ -3,7 +3,7 @@ import { Environment } from './environment.js';
 
 /** @import { Token } from './token.js' */
 /** @import { Literal, Grouping, Unary, Binary, Variable, Assign, ExpressionType } from './expression.js' */
-/** @import { Expression, Print, Var, StatementType } from './statement.js' */
+/** @import { Block, Expression, Print, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
 	#environment = new Environment();
@@ -107,6 +107,13 @@ export class Interpreter {
 		return null;
 	}
 
+	/** @param { Block } node */
+	Block(node) {
+		this.#visitBlock(node.statements, new Environment(this.#environment));
+
+		return null;
+	}
+
 	/** @param { Var } node */
 	Var(node) {
 		let value = null;
@@ -179,6 +186,24 @@ export class Interpreter {
 		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element.type}`);
 
 		return visitor[element.type](element);
+	}
+
+	/**
+	 * @param { StatementType[] } statements 
+	 * @param { Environment } environment 
+	 */
+	#visitBlock(statements, environment) {
+		const previous = this.#environment;
+		
+		try {
+			this.#environment = environment;
+
+			for (const statement of statements) {
+				this.#visit(statement, this);
+			}
+		} finally {
+			this.#environment = previous;
+		}
 	}
 
 	/** @param { any } value */
