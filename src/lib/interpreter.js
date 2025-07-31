@@ -2,7 +2,7 @@ import { System } from './system.js';
 import { Environment } from './environment.js';
 
 /** @import { Token } from './token.js' */
-/** @import { Literal, Grouping, Unary, Binary, Variable, ExpressionType } from './expression.js' */
+/** @import { Literal, Grouping, Unary, Binary, Variable, Assign, ExpressionType } from './expression.js' */
 /** @import { Expression, Print, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
@@ -122,6 +122,14 @@ export class Interpreter {
 	/** @param { Variable } node */
 	Variable(node) {
 		return this.#environment.get(node.name);
+	}
+
+	/** @param { Assign } node */
+	Assign(node) {
+		const value = this.#visit(node.value, this);
+		this.#environment.assign(node.name, value);
+
+		return value;
 	}
 
 	/**

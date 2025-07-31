@@ -23,4 +23,17 @@ export class Environment {
 	define(name, value) {
 		this.#values.set(name, value);
 	}
+
+	/**
+	 * @param { Token } name
+	 * @param { any } value
+	 */
+	assign(name, value) {
+		if (this.#values.has(name.lexeme)) {
+			this.#values.set(name.lexeme, value);
+			return;
+		}
+		
+		throw new RuntimeError(name, `Undefined variable '${name.lexeme}'.`);
+	}
 }

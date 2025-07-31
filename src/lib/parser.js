@@ -4,7 +4,7 @@ import { Expression } from './expression.js';
 import { Statement } from './statement.js';
 
 /** @import { TokenType } from './tokenTypes.js' */
-/** @import { ExpressionType } from './expression.js' */
+/** @import { Variable, ExpressionType } from './expression.js' */
 /** @import { StatementType } from './statement.js' */
 
 export class Parser {
@@ -30,7 +30,7 @@ export class Parser {
 
 	/** @returns { ExpressionType } */
 	#expression() {
-		return this.#equality();
+		return this.#assignment();
 	}
 
 	#declaration() {
@@ -71,6 +71,25 @@ export class Parser {
 		const expression = this.#expression();
 		this.#consume('SEMICOLON', 'Expected ; after expression.');
 		return Statement.Expression(expression);
+	}
+
+	/** @returns { ExpressionType } */
+	#assignment() {
+		const expression = this.#equality();
+
+		if (this.#match('EQUAL')) {
+			const equals = this.#previous();
+			const value = this.#assignment();
+
+			if (expression instanceof Expression.Variable) {
+				const name = /** @type { Variable } */ (expression).name;
+				return Expression.Assign(name, value);
+			}
+
+			this.#error(equals, 'Invalid assignment target.');
+		}
+
+		return expression;
 	}
 
 	/** @returns { ExpressionType } */

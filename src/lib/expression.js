@@ -1,6 +1,13 @@
 /** @import { Token } from './token.js' */
 
-/** @typedef { Binary | Grouping | Literal | Unary | Variable } ExpressionType */
+/** @typedef { Assign |Binary | Grouping | Literal | Unary | Variable } ExpressionType */
+
+/** 
+ * @typedef { Object } Assign
+ * @property { 'Assign' } type
+ * @property { Token } name
+ * @property { ExpressionType } value
+ */
 
 /** 
  * @typedef { Object } Binary
@@ -36,6 +43,19 @@
  */
 
 export class Expression {
+	/** 
+	 * @param { Token } name 
+	 * @param { ExpressionType } value 
+	 * @returns { Assign }
+	 */
+	static Assign(name, value) {
+		return {
+			type: 'Assign',
+			name,
+			value
+		};
+	}
+	
 	/**
 	 * @param { ExpressionType } left 
 	 * @param { Token } operator 
