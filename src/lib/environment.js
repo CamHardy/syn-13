@@ -2,7 +2,13 @@ import { RuntimeError } from './interpreter.js';
 /** @import { Token } from './token.js' */
 
 export class Environment {
+	enclosing;
 	#values = new Map();
+
+	/** @param { Environment | null } enclosing */
+	constructor(enclosing = null) {
+		this.enclosing = enclosing;
+	}
 
 	/**
 	 * @param { Token } name 
@@ -12,7 +18,9 @@ export class Environment {
 		if (this.#values.has(name.lexeme)) {
 			return this.#values.get(name.lexeme);
 		}
-		
+
+		if (this.enclosing) return this.enclosing.get(name);
+
 		throw new RuntimeError(name, `Undefined variable '${name.lexeme}'.`);
 	}
 
@@ -31,6 +39,11 @@ export class Environment {
 	assign(name, value) {
 		if (this.#values.has(name.lexeme)) {
 			this.#values.set(name.lexeme, value);
+			return;
+		}
+
+		if (this.enclosing) {
+			this.enclosing.assign(name, value);
 			return;
 		}
 		
