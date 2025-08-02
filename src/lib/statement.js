@@ -1,7 +1,7 @@
 /** @import { ExpressionType } from './expression.js' */
 /** @import { Token } from './token.js' */
 
-/** @typedef { Block | Expression | Print | Var } StatementType */
+/** @typedef { Block | Expression | If |Print | Var } StatementType */
 
 /**
  * @typedef { Object } Block
@@ -13,6 +13,14 @@
  * @typedef { Object } Expression
  * @property { 'Expression' } type
  * @property { ExpressionType } expression
+ */
+
+/**
+ * @typedef { Object } If
+ * @property { 'If' } type
+ * @property { ExpressionType } condition
+ * @property { StatementType } thenBranch
+ * @property { StatementType | null } elseBranch
  */
 
 /**
@@ -47,6 +55,21 @@ export class Statement {
 		return {
 			type: 'Expression',
 			expression
+		}
+	}
+
+	/**
+	 * @param { ExpressionType } condition 
+	 * @param { StatementType } thenBranch 
+	 * @param { StatementType  | null } elseBranch 
+	 * @returns { If }
+	*/
+	static If(condition, thenBranch, elseBranch) {
+		return {
+			type: 'If',
+			condition,
+			thenBranch,
+			elseBranch
 		}
 	}
 

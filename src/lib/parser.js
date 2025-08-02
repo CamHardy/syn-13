@@ -44,7 +44,9 @@ export class Parser {
 		}
 	}
 
+	/** @returns { StatementType } */
 	#statement() {
+		if (this.#match('IF')) return this.#ifStatement();
 		if (this.#match('PRINT')) return this.#printStatement();
 		if (this.#match('LEFT_BRACE')) return Statement.Block(this.#block());
 
@@ -62,6 +64,18 @@ export class Parser {
 	
 		this.#consume('SEMICOLON', 'Expected ; after variable declaration.');
 		return Statement.Var(name, /** @type { ExpressionType } */ (initializer));
+	}
+
+	#ifStatement() {
+		this.#consume('LEFT_PAREN', 'Expected ( after if.');
+		const condition = this.#expression();
+		this.#consume('RIGHT_PAREN', 'Expected ) after if condition.');
+
+		const thenBranch = this.#statement();
+		let elseBranch = null;
+		if (this.#match('ELSE')) elseBranch = this.#statement();
+
+		return Statement.If(condition, thenBranch, elseBranch);
 	}
 
 	#printStatement() {

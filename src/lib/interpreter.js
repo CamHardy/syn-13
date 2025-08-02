@@ -3,7 +3,7 @@ import { Environment } from './environment.js';
 
 /** @import { Token } from './token.js' */
 /** @import { Literal, Grouping, Unary, Binary, Variable, Assign, ExpressionType } from './expression.js' */
-/** @import { Block, Expression, Print, Var, StatementType } from './statement.js' */
+/** @import { Block, Expression, If, Print, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
 	#environment = new Environment();
@@ -95,6 +95,17 @@ export class Interpreter {
 	/** @param { Expression } node */
 	Expression(node) {
 		this.#visit(node.expression, this);
+
+		return null;
+	}
+
+	/** @param { If } node */
+	If(node) {
+		if (this.#isTruthy(this.#visit(node.condition, this))) {
+			this.#visit(node.thenBranch, this);
+		} else if (node.elseBranch) {
+			this.#visit(node.elseBranch, this);
+		}
 
 		return null;
 	}
