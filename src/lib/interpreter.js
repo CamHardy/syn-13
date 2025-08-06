@@ -2,11 +2,43 @@ import { System } from './system.js';
 import { Environment } from './environment.js';
 
 /** @import { Token } from './token.js' */
-/** @import { Literal, Grouping, Unary, Binary, Variable, Assign, Logical, ExpressionType } from './expression.js' */
+/** @import { Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, ExpressionType } from './expression.js' */
 /** @import { Block, Expression, If, Print, While, Var, StatementType } from './statement.js' */
 
+/** @interface */
+class Callable {
+	/** @returns { number } */
+	arity() {
+		throw new Error('not implemented');
+	}
+  /**
+   * @param {Interpreter} interpreter
+   * @param {any[]} args
+   */
+  call(interpreter, args) {}
+}
+
 export class Interpreter {
-	#environment = new Environment();
+	globals = new Environment();
+	#environment = this.globals;
+
+	constructor() {
+		this.globals.define('clock', new class Clock extends Callable {
+			arity() {
+				return 0;
+			}
+			/**
+			 * @param { Interpreter } interpreter 
+			 * @param { any[] } args 
+			 */
+			call(interpreter, args) {
+				return Date.now() / 1000;
+			}
+			toString() {
+				return '<native fn>';
+			}
+		});
+	}
 
 	/** @param { StatementType[] } statements */
 	interpret(statements) {
@@ -101,8 +133,28 @@ export class Interpreter {
 		}
 
 		return null;
-	}
+	}	
 
+	/** @param { Call } node */
+	Call(node) {
+		const callee = this.#visit(node.callee, this);
+
+		const args = [];
+		for (const arg of node.args) {
+			args.push(this.#visit(arg, this));
+		}
+
+		if (!(callee instanceof Callable)) {
+			throw new Error('Can only call functions and classes.');
+		}
+
+		const fun = callee;
+		if (args.length !== fun.arity()) {
+			throw new Error(`Expected ${fun.arity()} arguments but got ${args.length}.`);
+		}
+
+		return fun.call(this, args);
+	}
 
 	/** @param { Expression } node */
 	Expression(node) {

@@ -64,6 +64,7 @@ export class System {
 //TODO: run actual code
 //TODO: handle errors
 System.run(`
+	var start = clock();
 	var a = 0;
 	var temp;
 
@@ -72,6 +73,7 @@ System.run(`
 		temp = a;
 		a = b;
 	}
+	print(clock() - start);
 `);
 
 	//TODO: exit process gracefully

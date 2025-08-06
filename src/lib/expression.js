@@ -1,6 +1,6 @@
 /** @import { Token } from './token.js' */
 
-/** @typedef { Assign |Binary | Grouping | Literal | Logical |Unary | Variable } ExpressionType */
+/** @typedef { Assign | Binary | Call | Grouping | Literal | Logical | Unary | Variable } ExpressionType */
 
 /** 
  * @typedef { Object } Assign
@@ -15,6 +15,14 @@
  * @property { ExpressionType } left
  * @property { Token } operator
  * @property { ExpressionType } right
+ */
+
+/**
+ * @typedef { Object } Call
+ * @property { 'Call' } type
+ * @property { ExpressionType } callee
+ * @property { Token } paren
+ * @property { ExpressionType[] } args
  */
 
 /** 
@@ -76,6 +84,21 @@ export class Expression {
 			left,
 			operator,
 			right
+		};
+	}
+
+	/**
+	 * @param { ExpressionType } callee 
+	 * @param { Token } paren 
+	 * @param { ExpressionType[] } args 
+	 * @returns { Call }
+	 */
+	static Call(callee, paren, args) {
+		return {
+			type: 'Call',
+			callee,
+			paren,
+			args
 		};
 	}
 

@@ -263,7 +263,39 @@ export class Parser {
 			return Expression.Unary(operator, right);
 		}
 
-		return this.#primary();
+		return this.#call();
+	}
+
+	#call() {
+		let expression = this.#primary();
+
+		while (true) {
+			if (this.#match('LEFT_PAREN')) {
+				expression = this.#finishCall(expression);
+			} else {
+				break;
+			}
+		}
+
+		return expression;
+	}
+
+	/** @param { ExpressionType } callee */
+	#finishCall(callee) {
+		const args = [];
+
+		if (!this.#check('RIGHT_PAREN')) {
+			do {
+				if (args.length >= 255) {
+					this.#error(this.#peek(), "Can't have more than 255 arguments.");
+				}
+				args.push(this.#expression());
+			} while (this.#match('COMMA'));
+		}
+
+		const paren = this.#consume('RIGHT_PAREN', 'Expected ) after arguments.');
+
+		return Expression.Call(callee, paren, args);
 	}
 
 	/** @returns { ExpressionType } */
