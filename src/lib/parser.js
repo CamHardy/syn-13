@@ -48,6 +48,7 @@ export class Parser {
 	#statement() {
 		if (this.#match('IF')) return this.#ifStatement();
 		if (this.#match('PRINT')) return this.#printStatement();
+		if (this.#match('WHILE')) return this.#whileStatement();
 		if (this.#match('LEFT_BRACE')) return Statement.Block(this.#block());
 
 		return this.#expressionStatement();
@@ -84,6 +85,15 @@ export class Parser {
 		return Statement.Print(value);
 	}
 
+	#whileStatement() {
+		this.#consume('LEFT_PAREN', 'Expected ( after while.');
+		const condition = this.#expression();
+		this.#consume('RIGHT_PAREN', 'Expected ) after while condition.');
+		const body = this.#statement();
+
+		return Statement.While(condition, body);
+	}
+
 	#expressionStatement() {
 		const expression = this.#expression();
 		this.#consume('SEMICOLON', 'Expected ; after expression.');
@@ -110,8 +120,8 @@ export class Parser {
 		if (this.#match('EQUAL')) {
 			const equals = this.#previous();
 			const value = this.#assignment();
-
-			if (expression instanceof Expression.Variable) {
+			
+			if (expression.type === 'Variable') {
 				const name = /** @type { Variable } */ (expression).name;
 				return Expression.Assign(name, value);
 			}

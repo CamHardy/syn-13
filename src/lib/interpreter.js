@@ -3,7 +3,7 @@ import { Environment } from './environment.js';
 
 /** @import { Token } from './token.js' */
 /** @import { Literal, Grouping, Unary, Binary, Variable, Assign, Logical, ExpressionType } from './expression.js' */
-/** @import { Block, Expression, If, Print, Var, StatementType } from './statement.js' */
+/** @import { Block, Expression, If, Print, While, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
 	#environment = new Environment();
@@ -126,6 +126,15 @@ export class Interpreter {
 	Print(node) {
 		const value = this.#visit(node.expression, this);
 		console.log(this.#stringify(value));
+
+		return null;
+	}
+
+	/** @param { While } node */
+	While(node) {
+		while (this.#isTruthy(this.#visit(node.condition, this))) {
+			this.#visit(node.body, this);
+		}
 
 		return null;
 	}

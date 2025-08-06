@@ -64,8 +64,12 @@ export class System {
 //TODO: run actual code
 //TODO: handle errors
 System.run(`
-	print "hi" or 2;
-	print nil or "yes";
+	var x = 0;
+	while (x < 3) {
+		print(x);
+		x = x + 1;
+	}
+	print("done");
 `);
 
 	//TODO: exit process gracefully

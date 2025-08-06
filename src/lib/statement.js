@@ -1,7 +1,7 @@
 /** @import { ExpressionType } from './expression.js' */
 /** @import { Token } from './token.js' */
 
-/** @typedef { Block | Expression | If |Print | Var } StatementType */
+/** @typedef { Block | Expression | If | Print | Var | While } StatementType */
 
 /**
  * @typedef { Object } Block
@@ -34,6 +34,13 @@
  * @property { 'Var' } type
  * @property { Token } name
  * @property { ExpressionType } initializer
+ */
+
+/**
+ * @typedef { Object } While
+ * @property { 'While' } type
+ * @property { ExpressionType } condition
+ * @property { StatementType } body
  */
 
 export class Statement {
@@ -94,6 +101,19 @@ export class Statement {
 			type: 'Var',
 			name,
 			initializer
+		}
+	}
+
+	/** 
+	 * @param { ExpressionType } condition 
+	 * @param { StatementType } body 
+	 * @returns { While }
+	*/
+	static While(condition, body) {
+		return {
+			type: 'While',
+			condition,
+			body
 		}
 	}
 }
