@@ -2,7 +2,7 @@ import { System } from './system.js';
 import { Environment } from './environment.js';
 
 /** @import { Token } from './token.js' */
-/** @import { Literal, Grouping, Unary, Binary, Variable, Assign, ExpressionType } from './expression.js' */
+/** @import { Literal, Grouping, Unary, Binary, Variable, Assign, Logical, ExpressionType } from './expression.js' */
 /** @import { Block, Expression, If, Print, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
@@ -24,6 +24,18 @@ export class Interpreter {
 	/** @param { Literal } node */
 	Literal(node) {
 		return node.value;
+	}
+	/** @param { Logical } node */
+	Logical(node) {
+		const left = this.#visit(node.left, this);
+
+		if (node.operator.type === 'OR') {
+			if (this.#isTruthy(left)) return left;
+		} else {
+			if (!this.#isTruthy(left)) return left;
+		}
+
+		return this.#visit(node.right, this);
 	}
 
 	/** @param { Grouping } node */

@@ -64,25 +64,8 @@ export class System {
 //TODO: run actual code
 //TODO: handle errors
 System.run(`
-	var a = "global a";
-	var b = "global b";
-	var c = "global c";
-	{
-		var a = "outer a"; 
-		var b = "outer b";
-		{
-			var a = "inner a";
-			print a;
-			print b;
-			print c;
-		}
-		print a;
-		print b;
-		print c;
-	}
-	print a;
-	print b;
-	print c;
+	print "hi" or 2;
+	print nil or "yes";
 `);
 
 	//TODO: exit process gracefully

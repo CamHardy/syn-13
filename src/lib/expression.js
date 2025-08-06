@@ -1,6 +1,6 @@
 /** @import { Token } from './token.js' */
 
-/** @typedef { Assign |Binary | Grouping | Literal | Unary | Variable } ExpressionType */
+/** @typedef { Assign |Binary | Grouping | Literal | Logical |Unary | Variable } ExpressionType */
 
 /** 
  * @typedef { Object } Assign
@@ -27,6 +27,14 @@
  * @typedef { Object } Literal
  * @property { 'Literal' } type
  * @property { any } value
+ */
+
+/**
+ * @typedef { Object } Logical
+ * @property { 'Logical' } type
+ * @property { ExpressionType } left
+ * @property { Token } operator
+ * @property { ExpressionType } right
  */
 
 /** 
@@ -90,6 +98,21 @@ export class Expression {
 		return {
 			type: 'Literal',
 			value
+		};
+	}
+
+	/**
+	 * @param { ExpressionType } left 
+	 * @param { Token } operator 
+	 * @param { ExpressionType } right 
+	 * @returns { Logical }
+	 */
+	static Logical(left, operator, right) {
+		return {
+			type: 'Logical',
+			left,
+			operator,
+			right
 		};
 	}
 

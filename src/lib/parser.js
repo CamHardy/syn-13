@@ -105,7 +105,7 @@ export class Parser {
 
 	/** @returns { ExpressionType } */
 	#assignment() {
-		const expression = this.#equality();
+		const expression = this.#or();
 
 		if (this.#match('EQUAL')) {
 			const equals = this.#previous();
@@ -117,6 +117,30 @@ export class Parser {
 			}
 
 			this.#error(equals, 'Invalid assignment target.');
+		}
+
+		return expression;
+	}
+
+	#or() {
+		let expression = this.#and();
+
+		while (this.#match('OR')) {
+			const operator = this.#previous();
+			const right = this.#and();
+			expression = Expression.Logical(expression, operator, right);
+		}
+
+		return expression;
+	}
+
+	#and() {
+		let expression = this.#equality();
+
+		while (this.#match('AND')) {
+			const operator = this.#previous();
+			const right = this.#equality();
+			expression = Expression.Logical(expression, operator, right);
 		}
 
 		return expression;
