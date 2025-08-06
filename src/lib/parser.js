@@ -46,6 +46,7 @@ export class Parser {
 
 	/** @returns { StatementType } */
 	#statement() {
+		if (this.#match('FOR')) return this.#forStatement();
 		if (this.#match('IF')) return this.#ifStatement();
 		if (this.#match('PRINT')) return this.#printStatement();
 		if (this.#match('WHILE')) return this.#whileStatement();
@@ -65,6 +66,52 @@ export class Parser {
 	
 		this.#consume('SEMICOLON', 'Expected ; after variable declaration.');
 		return Statement.Var(name, /** @type { ExpressionType } */ (initializer));
+	}
+
+	#forStatement() {
+		this.#consume('LEFT_PAREN', 'Expected ( after for.');
+
+		let initializer;
+		if (this.#match('SEMICOLON')) {
+			initializer = null;
+		} else if (this.#match('VAR')) {
+			initializer = this.#varDeclaration();
+		} else {
+			initializer = this.#expressionStatement();
+		}
+
+		let condition = null;
+		if (!this.#check('SEMICOLON')) {
+			condition = this.#expression();
+		}
+		this.#consume('SEMICOLON', 'Expected ; after loop condition.');
+
+		let increment = null;
+		if (!this.#check('RIGHT_PAREN')) {
+			increment = this.#expression();
+		}
+		this.#consume('RIGHT_PAREN', 'Expected ) after for clauses.');
+
+		let body = this.#statement();
+
+		if (increment !== null) {
+			body = Statement.Block([
+				body,
+				Statement.Expression(increment)
+			]);
+		}
+
+		if (condition === null) condition = Expression.Literal(true);
+		body = Statement.While(condition, body);
+
+		if (initializer !== null) {
+			body = Statement.Block([
+				initializer,
+				body
+			]);
+		}
+
+		return body;
 	}
 
 	#ifStatement() {

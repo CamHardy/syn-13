@@ -64,12 +64,14 @@ export class System {
 //TODO: run actual code
 //TODO: handle errors
 System.run(`
-	var x = 0;
-	while (x < 3) {
-		print(x);
-		x = x + 1;
+	var a = 0;
+	var temp;
+
+	for (var b = 1; a < 10000; b = temp + b) {
+		print(a);
+		temp = a;
+		a = b;
 	}
-	print("done");
 `);
 
 	//TODO: exit process gracefully
