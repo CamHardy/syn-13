@@ -1,22 +1,11 @@
 import { System } from './system.js';
 import { Environment } from './environment.js';
+import { Callable } from './callable.js';
+import { Function } from './function.js';
 
 /** @import { Token } from './token.js' */
 /** @import { Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, ExpressionType } from './expression.js' */
-/** @import { Block, Expression, If, Print, While, Var, StatementType } from './statement.js' */
-
-/** @interface */
-class Callable {
-	/** @returns { number } */
-	arity() {
-		throw new Error('not implemented');
-	}
-  /**
-   * @param {Interpreter} interpreter
-   * @param {any[]} args
-   */
-  call(interpreter, args) {}
-}
+/** @import { Block, Expression, Func, If, Print, While, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
 	globals = new Environment();
@@ -163,6 +152,14 @@ export class Interpreter {
 		return null;
 	}
 
+	/** @param { Func } node */
+	Function(node) {
+		const func = new Function(node);
+		this.#environment.define(node.name.lexeme, func);
+
+		return null;
+	}
+
 	/** @param { If } node */
 	If(node) {
 		if (this.#isTruthy(this.#visit(node.condition, this))) {
@@ -193,7 +190,7 @@ export class Interpreter {
 
 	/** @param { Block } node */
 	Block(node) {
-		this.#visitBlock(node.statements, new Environment(this.#environment));
+		this.visitBlock(node.statements, new Environment(this.#environment));
 
 		return null;
 	}
@@ -276,7 +273,7 @@ export class Interpreter {
 	 * @param { StatementType[] } statements 
 	 * @param { Environment } environment 
 	 */
-	#visitBlock(statements, environment) {
+	visitBlock(statements, environment) {
 		const previous = this.#environment;
 		
 		try {

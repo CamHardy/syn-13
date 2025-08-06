@@ -36,6 +36,7 @@ export class Parser {
 	/** @returns { StatementType } */
 	#declaration() {
 		try {
+			if (this.#match('FUN')) return this.#function('function');
 			if (this.#match('VAR')) return this.#varDeclaration();
 			return this.#statement();
 		} catch (error) {
@@ -53,6 +54,29 @@ export class Parser {
 		if (this.#match('LEFT_BRACE')) return Statement.Block(this.#block());
 
 		return this.#expressionStatement();
+	}
+
+	/** 
+	 * @param { string } kind
+	 * @returns { StatementType } 
+	 */
+	#function(kind) {
+		const name = this.#consume('IDENTIFIER', `Expected ${kind} name.`);
+		this.#consume('LEFT_PAREN', `Expected '(' after ${kind} name.`);
+		const params = [];
+		if (!this.#check('RIGHT_PAREN')) {
+			do {
+				if (params.length >= 255) {
+					this.#error(this.#peek(), 'Cannot have more than 255 parameters.');
+				}
+				params.push(this.#consume('IDENTIFIER', 'Expected parameter name.'));
+			} while (this.#match('COMMA'));
+		}
+		this.#consume('RIGHT_PAREN', `Expected ')' after ${kind} parameters.`);
+		this.#consume('LEFT_BRACE', `Expected '{' before ${kind} body.`);
+		const body = this.#block();
+
+		return Statement.Func(name, params, body);
 	}
 
 	/** @returns { StatementType } */

@@ -64,16 +64,11 @@ export class System {
 //TODO: run actual code
 //TODO: handle errors
 System.run(`
-	var start = clock();
-	var a = 0;
-	var temp;
-
-	for (var b = 1; a < 10000; b = temp + b) {
-		print(a);
-		temp = a;
-		a = b;
+	fun sayHi(first, last) {
+		print("Hi, " + first + " " + last + "!");
 	}
-	print(clock() - start);
+
+	sayHi("Robert", "Paulson");
 `);
 
 	//TODO: exit process gracefully
