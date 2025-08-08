@@ -64,11 +64,14 @@ export class System {
 //TODO: run actual code
 //TODO: handle errors
 System.run(`
-	fun sayHi(first, last) {
-		print("Hi, " + first + " " + last + "!");
+	fun fib(n) {
+		if (n < 2) return n;
+		return fib(n - 1) + fib(n - 2);
 	}
 
-	sayHi("Robert", "Paulson");
+	for (var i = 0; i < 10; i = i + 1) {
+		print fib(i);
+	}
 `);
 
 	//TODO: exit process gracefully

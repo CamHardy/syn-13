@@ -50,6 +50,7 @@ export class Parser {
 		if (this.#match('FOR')) return this.#forStatement();
 		if (this.#match('IF')) return this.#ifStatement();
 		if (this.#match('PRINT')) return this.#printStatement();
+		if (this.#match('RETURN')) return this.#returnStatement();
 		if (this.#match('WHILE')) return this.#whileStatement();
 		if (this.#match('LEFT_BRACE')) return Statement.Block(this.#block());
 
@@ -154,6 +155,19 @@ export class Parser {
 		const value = this.#expression();
 		this.#consume('SEMICOLON', 'Expected ; after value.');
 		return Statement.Print(value);
+	}
+
+	#returnStatement() {
+		const keyword = this.#previous();
+		let value = null;
+
+		if (!this.#check('SEMICOLON')) {
+			value = this.#expression();
+		}
+
+		this.#consume('SEMICOLON', 'Expected ; after return value.');
+
+		return Statement.Return(keyword, value);
 	}
 
 	#whileStatement() {

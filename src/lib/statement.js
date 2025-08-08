@@ -1,7 +1,7 @@
 /** @import { ExpressionType } from './expression.js' */
 /** @import { Token } from './token.js' */
 
-/** @typedef { Block | Expression | Func | If | Print | Var | While } StatementType */
+/** @typedef { Block | Expression | Func | If | Print | Return | Var | While } StatementType */
 
 /**
  * @typedef { Object } Block
@@ -35,6 +35,13 @@
  * @typedef { Object } Print
  * @property { 'Print' } type
  * @property { ExpressionType } expression
+ */
+
+/**
+ * @typedef { Object } Return
+ * @property { 'Return' } type
+ * @property { Token } keyword
+ * @property { ExpressionType | null } value
  */
 
 /**
@@ -111,6 +118,19 @@ export class Statement {
 		return {
 			type: 'Print',
 			expression
+		}
+	}
+
+	/**
+	 * @param { Token } keyword
+	 * @param { ExpressionType | null } value 
+	 * @returns { Return }
+	 */
+	static Return(keyword, value) {
+		return {
+			type: 'Return',
+			keyword,
+			value
 		}
 	}
 

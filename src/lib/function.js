@@ -2,6 +2,7 @@ import { Callable } from './callable.js';
 import { Interpreter } from './interpreter.js';
 import { Environment } from './environment.js';
 /** @import { Func } from './statement.js' */
+/** @import { ReturnException } from './interpreter.js'} */
 
 export class Function extends Callable {
 	/** @type { Func } */
@@ -26,7 +27,13 @@ export class Function extends Callable {
 		for (let i = 0; i < this.#declaration.params.length; i++) {
 			environment.define(this.#declaration.params[i].lexeme, args[i]);
 		}
-		interpreter.visitBlock(this.#declaration.body, environment);
+
+		try {
+			interpreter.visitBlock(this.#declaration.body, environment);
+		} catch (returnValue) {
+			return /** @type { ReturnException } */ (returnValue).value;
+		}
+
 
 		return null;
 	}

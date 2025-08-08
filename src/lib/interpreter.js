@@ -5,7 +5,7 @@ import { Function } from './function.js';
 
 /** @import { Token } from './token.js' */
 /** @import { Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, ExpressionType } from './expression.js' */
-/** @import { Block, Expression, Func, If, Print, While, Var, StatementType } from './statement.js' */
+/** @import { Block, Expression, Func, If, Print, Return, While, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
 	globals = new Environment();
@@ -179,6 +179,15 @@ export class Interpreter {
 		return null;
 	}
 
+	/** @param { Return } node */
+	Return(node) {
+		let value = null;
+
+		if (node.value !== null) value = this.#visit(node.value, this);
+
+		throw new ReturnException(value);
+	}
+
 	/** @param { While } node */
 	While(node) {
 		while (this.#isTruthy(this.#visit(node.condition, this))) {
@@ -312,5 +321,17 @@ export class RuntimeError extends Error {
 	constructor(token, message) {
 		super(message);
 		this.token = token;
+	}
+}
+
+//TODO: find source for RuntimeException? (not RuntimeError)
+export class ReturnException extends Error {
+	/** @type { any } */
+	value;
+
+	/** @param { any } value */
+	constructor(value) {
+		super();
+		this.value = value
 	}
 }
