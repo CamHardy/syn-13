@@ -61,17 +61,19 @@ export class System {
 	}
 }
 
-//TODO: run actual code
 //TODO: handle errors
 System.run(`
-	fun fib(n) {
-		if (n < 2) return n;
-		return fib(n - 1) + fib(n - 2);
+	fun makeCounter() {
+		var i = 0;
+		fun count() {
+			i = i + 1;
+			print i;
+		}
+		return count;
 	}
-
-	for (var i = 0; i < 10; i = i + 1) {
-		print fib(i);
-	}
+	var counter = makeCounter();
+	counter(); // '1'
+	counter(); // '2'
 `);
 
 	//TODO: exit process gracefully

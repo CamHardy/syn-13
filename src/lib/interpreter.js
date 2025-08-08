@@ -154,7 +154,7 @@ export class Interpreter {
 
 	/** @param { Func } node */
 	Function(node) {
-		const func = new Function(node);
+		const func = new Function(node, this.#environment);
 		this.#environment.define(node.name.lexeme, func);
 
 		return null;

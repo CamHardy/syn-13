@@ -7,11 +7,17 @@ import { Environment } from './environment.js';
 export class Function extends Callable {
 	/** @type { Func } */
 	#declaration;
+	/** @type { Environment } */
+	#closure;
 
-	/** @param { Func } declaration */
-	constructor(declaration) {
+	/** 
+	 * @param { Func } declaration 
+	 * @param { Environment } closure
+	 */
+	constructor(declaration, closure) {
 		super();
 		this.#declaration = declaration;
+		this.#closure = closure;
 	}
 
 	arity() {
@@ -23,7 +29,7 @@ export class Function extends Callable {
 	 * @param { any[] } args 
 	 */
 	call(interpreter, args) {
-		const environment = new Environment(interpreter.globals);
+		const environment = new Environment(this.#closure);
 		for (let i = 0; i < this.#declaration.params.length; i++) {
 			environment.define(this.#declaration.params[i].lexeme, args[i]);
 		}
