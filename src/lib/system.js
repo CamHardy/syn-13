@@ -4,6 +4,7 @@ import { AstPrinter } from './astPrinter.js';
 import { Expression } from './expression.js';
 import { Interpreter, RuntimeError } from './interpreter.js';
 import { Token } from './token.js';
+import { Resolver } from './resolver.js';
 
 /** @import { ExpressionType } from './expression.js' } */
 /** @import { StatementType } from './statement.js' } */
@@ -23,6 +24,9 @@ export class System {
 		if (statements === null || this.hadError) {
 			return;
 		}
+
+		const resolver = new Resolver(this.#interpreter);
+		resolver.resolveBlock(/** @type { StatementType[] } */ (statements));
 
 		this.#interpreter.interpret(/** @type { StatementType[] } */ (statements));
 	}

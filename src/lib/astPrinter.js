@@ -23,7 +23,7 @@ export class AstPrinter {
 
 	/**
 	 * @param { ExpressionType } node 
-	 * @param {*} visitor
+	 * @param { any } visitor
 	 */
 	static #visit(node, visitor) {
 		if (!node || !visitor[node.type]) throw new Error(`No visitor for node type: ${node.type}`);

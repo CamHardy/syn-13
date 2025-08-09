@@ -10,6 +10,7 @@ import { Function } from './function.js';
 export class Interpreter {
 	globals = new Environment();
 	#environment = this.globals;
+	#locals = new Map();
 
 	constructor() {
 		this.globals.define('clock', new class Clock extends Callable {
@@ -218,15 +219,35 @@ export class Interpreter {
 
 	/** @param { Variable } node */
 	Variable(node) {
-		return this.#environment.get(node.name);
+		return this.#lookUpVariable(node.name, node);
 	}
 
 	/** @param { Assign } node */
 	Assign(node) {
 		const value = this.#visit(node.value, this);
-		this.#environment.assign(node.name, value);
+
+		const distance = this.#locals.get(node.name);
+		if (distance !== null) {
+			this.#environment.assignAt(distance, node.name, value);
+		} else {
+			this.globals.assign(node.name, value);
+		}
 
 		return value;
+	}
+
+	/**
+	 * @param { Token } name 
+	 * @param { ExpressionType } node 
+	 */
+	#lookUpVariable(name, node) {
+		const distance = this.#locals.get(name);
+
+		if (distance !== null) {
+			return this.#environment.getAt(distance, name.lexeme);
+		} else {
+			return this.globals.get(name);
+		}
 	}
 
 	/**
@@ -270,7 +291,7 @@ export class Interpreter {
 
 	/**
 	 * @param { ExpressionType | StatementType } element 
-	 * @param {*} visitor
+	 * @param { any } visitor
 	 */
 	#visit(element, visitor) {
 		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element.type}`);
@@ -294,6 +315,14 @@ export class Interpreter {
 		} finally {
 			this.#environment = previous;
 		}
+	}
+
+	/**
+	 * @param { ExpressionType } node 
+	 * @param { number } depth 
+	 */
+	resolve(node, depth) {
+		this.#locals.set(node, depth);
 	}
 
 	/** @param { any } value */
