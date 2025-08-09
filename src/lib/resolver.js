@@ -1,12 +1,16 @@
 import { Interpreter } from './interpreter.js';
 import { Token } from './token.js';
+import { System } from './system.js';
 /** @import { Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable, ExpressionType } from './expression.js' */
 /** @import { Block, Expression, Func, If, Print, Return, Var, While, StatementType } from './statement.js' */
+/** @import { FunctionType } from './functionTypes.js' */
 
 export class Resolver {
 	#interpreter;
 	/** @type { Map<string, boolean>[] } */
 	#scopes = [];
+	/** @type { FunctionType } */
+	#currentFunction = 'NONE';
 
 	/** @param { Interpreter } interpreter */
 	constructor(interpreter) {
@@ -15,7 +19,7 @@ export class Resolver {
 
 	/** @param { Assign } node */
 	Assign(node) {
-		this.#resolve(node.value, this);
+		this.#resolve(node.value);
 		this.#resolveLocal(node, node.name);
 
 		return null;
@@ -23,8 +27,8 @@ export class Resolver {
 
 	/** @param { Binary } node */
 	Binary(node) {
-		this.#resolve(node.left, this);
-		this.#resolve(node.right, this);
+		this.#resolve(node.left);
+		this.#resolve(node.right);
 
 		return null;
 	}
@@ -32,7 +36,7 @@ export class Resolver {
 	/** @param { Block } node */
 	Block(node) {
 		this.#beginScope();
-		this.resolveBlock(node.statements, this);
+		this.resolveBlock(node.statements);
 		this.#endScope();
 
 		return null;
@@ -40,10 +44,10 @@ export class Resolver {
 
 	/** @param { Call } node */
 	Call(node) {
-		this.#resolve(node.callee, this);
+		this.#resolve(node.callee);
 
 		for (const arg of node.args) {
-			this.#resolve(arg, this);
+			this.#resolve(arg);
 		}
 
 		return null;
@@ -51,7 +55,7 @@ export class Resolver {
 
 	/** @param { Expression } node */
 	Expression(node) {
-		this.#resolve(node.expression, this);
+		this.#resolve(node.expression);
 
 		return null;
 	}
@@ -61,23 +65,23 @@ export class Resolver {
 		this.#declare(node.name);
 		this.#define(node.name);
 
-		this.#resolveFunction(node);
+		this.#resolveFunction(node, 'FUNCTION');
 
 		return null;
 	}
 
 	/** @param { Grouping } node */
 	Grouping(node) {
-		this.#resolve(node.expression, this);
+		this.#resolve(node.expression);
 
 		return null;
 	}
 
 	/** @param { If } node */
 	If(node) {
-		this.#resolve(node.condition, this);
-		this.#resolve(node.thenBranch, this);
-		if (node.elseBranch) this.#resolve(node.elseBranch, this);
+		this.#resolve(node.condition);
+		this.#resolve(node.thenBranch);
+		if (node.elseBranch) this.#resolve(node.elseBranch);
 
 		return null;
 	}
@@ -89,29 +93,33 @@ export class Resolver {
 
 	/** @param { Logical } node */
 	Logical(node) {
-		this.#resolve(node.left, this);
-		this.#resolve(node.right, this);
+		this.#resolve(node.left);
+		this.#resolve(node.right);
 
 		return null;
 	}
 
 	/** @param { Print } node */
 	Print(node) {
-		this.#resolve(node.expression, this);
+		this.#resolve(node.expression);
 
 		return null;
 	}
 
 	/** @param { Return } node */
 	Return(node) {
-		if (node.value) this.#resolve(node.value, this);
+		if (this.#currentFunction === 'NONE') {
+			System.error(node.keyword, 'Can\'t return from top-level code.');
+		}
+		
+		if (node.value) this.#resolve(node.value);
 
 		return null;
 	}
 
 	/** @param { Unary } node */
 	Unary(node) {
-		this.#resolve(node.right, this);
+		this.#resolve(node.right);
 
 		return null;
 	}
@@ -121,7 +129,7 @@ export class Resolver {
 		this.#declare(node.name);
 
 		if (node.initializer) {
-			this.#resolve(node.initializer, this);
+			this.#resolve(node.initializer);
 		}
 
 		this.#define(node.name);
@@ -144,14 +152,20 @@ export class Resolver {
 
 	/** @param { While } node */
 	While(node) {
-		this.#resolve(node.condition, this);
-		this.#resolve(node.body, this);
+		this.#resolve(node.condition);
+		this.#resolve(node.body);
 
 		return null;
 	}
 
-	/** @param { Func } node */
-	#resolveFunction(node) {
+	/** 
+	 * @param { Func } node 
+	 * @param { FunctionType } type
+	 */
+	#resolveFunction(node, type) {
+		const enclosingFunction = this.#currentFunction;
+		this.#currentFunction = type;
+
 		this.#beginScope();
 
 		for (const param of node.params) {
@@ -159,8 +173,10 @@ export class Resolver {
 			this.#define(param);
 		}
 
-		this.resolveBlock(node.body, this);
+		this.resolveBlock(node.body);
 		this.#endScope();
+
+		this.#currentFunction = enclosingFunction;
 	}
 		
 	/** 
@@ -189,6 +205,11 @@ export class Resolver {
 		if (this.#scopes.length === 0) return;
 
 		const scope = this.#scopes[this.#scopes.length - 1];
+
+		if (scope.has(name.lexeme)) {
+			System.error(name, 'Already a variable with this name in this scope.');
+		}
+
 		scope.set(name.lexeme, false);
 	}
 
@@ -202,17 +223,16 @@ export class Resolver {
 
 	/**
 	 * @param { ExpressionType | StatementType } element 
-	 * @param { any } visitor
+	 * @param { any } [visitor]
 	 */
-	#resolve(element) {
-		if (!element || !this[element.type]) throw new Error(`No visitor for element type: ${element.type}`);
+	#resolve(element, visitor = this) {
+		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element.type}`);
 
-		return this[element.type](element);
+		return visitor[element.type](element);
 	}
 
 	/** 
 	 * @param { StatementType[] } statements 
-	 * @param { any } visitor 
 	 */
 	resolveBlock(statements) {
 		for (const statement of statements) {

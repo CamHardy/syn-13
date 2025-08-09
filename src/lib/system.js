@@ -21,12 +21,12 @@ export class System {
 		const parser = new Parser(tokens);
 		const statements = parser.parse();
 
-		if (statements === null || this.hadError) {
-			return;
-		}
+		if (this.hadError) return;
 
 		const resolver = new Resolver(this.#interpreter);
 		resolver.resolveBlock(/** @type { StatementType[] } */ (statements));
+
+		if (this.hadError) return;
 
 		this.#interpreter.interpret(/** @type { StatementType[] } */ (statements));
 	}
