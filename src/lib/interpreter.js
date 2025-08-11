@@ -43,40 +43,19 @@ export class Interpreter {
 			throw error;
 		}
 	}
-	/** @param { Literal } node */
-	Literal(node) {
-		return node.value;
-	}
-	/** @param { Logical } node */
-	Logical(node) {
-		const left = this.#visit(node.left, this);
 
-		if (node.operator.type === 'OR') {
-			if (this.#isTruthy(left)) return left;
+	/** @param { Assign } node */
+	Assign(node) {
+		const value = this.#visit(node.value, this);
+
+		const distance = this.#locals.get(node.name);
+		if (distance !== null) {
+			this.#environment.assignAt(distance, node.name, value);
 		} else {
-			if (!this.#isTruthy(left)) return left;
+			this.globals.assign(node.name, value);
 		}
 
-		return this.#visit(node.right, this);
-	}
-
-	/** @param { Grouping } node */
-	Grouping(node) {
-		return this.#visit(node.expression, this);
-	}
-
-	/** @param { Unary } node */
-	Unary(node) {
-		const right = this.#visit(node.right, this);
-		switch (node.operator.type) {
-			case 'BANG':
-				return !this.#isTruthy(right);
-			case 'MINUS':
-				this.#checkNumberOperand(node.operator, right);
-				return -Number(right);
-		}
-
-		return null;
+		return value;
 	}
 
 	/** @param { Binary } node */
@@ -125,6 +104,13 @@ export class Interpreter {
 		return null;
 	}	
 
+	/** @param { Block } node */
+	Block(node) {
+		this.visitBlock(node.statements, new Environment(this.#environment));
+
+		return null;
+	}
+
 	/** @param { Call } node */
 	Call(node) {
 		const callee = this.#visit(node.callee, this);
@@ -161,6 +147,11 @@ export class Interpreter {
 		return null;
 	}
 
+	/** @param { Grouping } node */
+	Grouping(node) {
+		return this.#visit(node.expression, this);
+	}
+
 	/** @param { If } node */
 	If(node) {
 		if (this.#isTruthy(this.#visit(node.condition, this))) {
@@ -170,6 +161,23 @@ export class Interpreter {
 		}
 
 		return null;
+	}
+
+	/** @param { Literal } node */
+	Literal(node) {
+		return node.value;
+	}
+	/** @param { Logical } node */
+	Logical(node) {
+		const left = this.#visit(node.left, this);
+
+		if (node.operator.type === 'OR') {
+			if (this.#isTruthy(left)) return left;
+		} else {
+			if (!this.#isTruthy(left)) return left;
+		}
+
+		return this.#visit(node.right, this);
 	}
 
 	/** @param { Print } node */
@@ -189,18 +197,16 @@ export class Interpreter {
 		throw new ReturnException(value);
 	}
 
-	/** @param { While } node */
-	While(node) {
-		while (this.#isTruthy(this.#visit(node.condition, this))) {
-			this.#visit(node.body, this);
+	/** @param { Unary } node */
+	Unary(node) {
+		const right = this.#visit(node.right, this);
+		switch (node.operator.type) {
+			case 'BANG':
+				return !this.#isTruthy(right);
+			case 'MINUS':
+				this.#checkNumberOperand(node.operator, right);
+				return -Number(right);
 		}
-
-		return null;
-	}
-
-	/** @param { Block } node */
-	Block(node) {
-		this.visitBlock(node.statements, new Environment(this.#environment));
 
 		return null;
 	}
@@ -222,18 +228,13 @@ export class Interpreter {
 		return this.#lookUpVariable(node.name, node);
 	}
 
-	/** @param { Assign } node */
-	Assign(node) {
-		const value = this.#visit(node.value, this);
-
-		const distance = this.#locals.get(node.name);
-		if (distance !== null) {
-			this.#environment.assignAt(distance, node.name, value);
-		} else {
-			this.globals.assign(node.name, value);
+	/** @param { While } node */
+	While(node) {
+		while (this.#isTruthy(this.#visit(node.condition, this))) {
+			this.#visit(node.body, this);
 		}
 
-		return value;
+		return null;
 	}
 
 	/**
