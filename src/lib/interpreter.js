@@ -3,9 +3,10 @@ import { Environment } from './environment.js';
 import { Callable } from './callable.js';
 import { Function } from './function.js';
 import { SynClass } from './class.js';
+import { Instance } from './instance.js';
 
 /** @import { Token } from './token.js' */
-/** @import { Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, ExpressionType } from './expression.js' */
+/** @import { Assign, Binary, Call, Get, Grouping, Literal, Logical, Set, Unary, Variable, ExpressionType } from './expression.js' */
 /** @import { Block, Class, Expression, Func, If, Print, Return, While, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
@@ -137,7 +138,13 @@ export class Interpreter {
 	Class(node) {
 		this.#environment.define(node.name.lexeme, null);
 
-		const klass = new SynClass(node.name.lexeme);
+		const methods = new Map();
+		for (const method of node.methods) {
+			const func = new Function(method, this.#environment);
+			methods.set(method.name.lexeme, func);
+		}
+
+		const klass = new SynClass(node.name.lexeme, methods);
 		this.#environment.assign(node.name, klass);
 
 		return null;
@@ -156,6 +163,17 @@ export class Interpreter {
 		this.#environment.define(node.name.lexeme, func);
 
 		return null;
+	}
+
+	/** @param { Get } node */
+	Get(node) {
+		const object = this.#visit(node.object, this);
+
+		if (object instanceof Instance) {
+			return object.get(node.name);
+		}
+
+		throw new Error('Only instances have properties.');
 	}
 
 	/** @param { Grouping } node */
@@ -189,6 +207,20 @@ export class Interpreter {
 		}
 
 		return this.#visit(node.right, this);
+	}
+
+	/** @param { Set } node */
+	Set(node) {
+		const object = this.#visit(node.object, this);
+
+		if (!(object instanceof Instance)) {
+			throw new Error('Only instances have fields.');
+		}
+
+		const value = this.#visit(node.value, this);
+		object.set(node.name, value);
+
+		return value;
 	}
 
 	/** @param { Print } node */

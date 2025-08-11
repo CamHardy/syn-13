@@ -1,6 +1,6 @@
 /** @import { Token } from './token.js' */
 
-/** @typedef { Assign | Binary | Call | Grouping | Literal | Logical | Unary | Variable } ExpressionType */
+/** @typedef { Assign | Binary | Call | Get | Grouping | Literal | Logical | Set | Unary | Variable } ExpressionType */
 
 /** 
  * @typedef { Object } Assign
@@ -26,6 +26,13 @@
  */
 
 /** 
+ * @typedef { Object } Get
+ * @property { 'Get' } type
+ * @property { ExpressionType } object
+ * @property { Token } name
+ */
+
+/** 
  * @typedef { Object } Grouping
  * @property { 'Grouping' } type
  * @property { ExpressionType } expression
@@ -43,6 +50,14 @@
  * @property { ExpressionType } left
  * @property { Token } operator
  * @property { ExpressionType } right
+ */
+
+/** 
+ * @typedef { Object } Set
+ * @property { 'Set' } type
+ * @property { ExpressionType } object
+ * @property { Token } name
+ * @property { ExpressionType } value
  */
 
 /** 
@@ -103,6 +118,19 @@ export class Expression {
 	}
 
 	/**
+	 * @param { ExpressionType } object 
+	 * @param { Token } name 
+	 * @returns { Get }
+	 */
+	static Get(object, name) {
+		return {
+			type: 'Get',
+			object,
+			name
+		};
+	}
+
+	/**
 	 * @param { ExpressionType } expression 
 	 * @returns { Grouping }
 	 */
@@ -136,6 +164,21 @@ export class Expression {
 			left,
 			operator,
 			right
+		};
+	}
+
+	/**
+	 * @param { ExpressionType } object 
+	 * @param { Token } name 
+	 * @param { ExpressionType } value 
+	 * @returns { Set }
+	 */
+	static Set(object, name, value) {
+		return {
+			type: 'Set',
+			object,
+			name,
+			value
 		};
 	}
 

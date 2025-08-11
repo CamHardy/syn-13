@@ -4,8 +4,8 @@ import { Expression } from './expression.js';
 import { Statement } from './statement.js';
 
 /** @import { TokenType } from './tokenTypes.js' */
-/** @import { Variable, ExpressionType } from './expression.js' */
-/** @import { Func, StatementType } from './statement.js' */
+/** @import { ExpressionType } from './expression.js' */
+/** @import { StatementType } from './statement.js' */
 
 export class Parser {
 	#tokens;
@@ -216,8 +216,9 @@ export class Parser {
 			const value = this.#assignment();
 			
 			if (expression.type === 'Variable') {
-				const name = /** @type { Variable } */ (expression).name;
-				return Expression.Assign(name, value);
+				return Expression.Assign(expression.name, value);
+			} else if (expression.type === 'Get') {
+				return Expression.Set(expression.object, expression.name, value);
 			}
 
 			this.#error(equals, 'Invalid assignment target.');
@@ -319,6 +320,9 @@ export class Parser {
 		while (true) {
 			if (this.#match('LEFT_PAREN')) {
 				expression = this.#finishCall(expression);
+			} else if (this.#match('DOT')) {
+				const name = this.#consume('IDENTIFIER', 'Expected property name after .');
+				expression = Expression.Get(expression, name);
 			} else {
 				break;
 			}

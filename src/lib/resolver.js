@@ -1,7 +1,7 @@
 import { Interpreter } from './interpreter.js';
 import { Token } from './token.js';
 import { System } from './system.js';
-/** @import { Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable, ExpressionType } from './expression.js' */
+/** @import { Assign, Binary, Call, Get, Grouping, Literal, Logical, Set, Unary, Variable, ExpressionType } from './expression.js' */
 /** @import { Block, Class, Expression, Func, If, Print, Return, Var, While, StatementType } from './statement.js' */
 /** @import { FunctionType } from './functionTypes.js' */
 
@@ -58,6 +58,11 @@ export class Resolver {
 		this.#declare(node.name);
 		this.#define(node.name);
 
+		for (const method of node.methods) {
+			const declaration = 'METHOD';
+			this.#resolveFunction(method, 'METHOD');
+		}
+
 		return null;
 	}
 
@@ -74,6 +79,13 @@ export class Resolver {
 		this.#define(node.name);
 
 		this.#resolveFunction(node, 'FUNCTION');
+
+		return null;
+	}
+
+	/** @param { Get } node */
+	Get(node) {
+		this.#resolve(node.object);
 
 		return null;
 	}
@@ -121,6 +133,14 @@ export class Resolver {
 		}
 
 		if (node.value) this.#resolve(node.value);
+
+		return null;
+	}
+
+	/** @param { Set } node */
+	Set(node) {
+		this.#resolve(node.value);
+		this.#resolve(node.object);
 
 		return null;
 	}

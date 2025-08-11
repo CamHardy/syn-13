@@ -67,17 +67,13 @@ export class System {
 
 //TODO: handle errors
 System.run(`
-	fun makeCounter() {
-		var i = 0;
-		fun count() {
-			i = i + 1;
-			print i;
+	class Bacon {
+		eat() {
+			print("Mum get the camera, I'm eating bacon!");
 		}
-		return count;
 	}
-	var counter = makeCounter();
-	counter(); // '1'
-	counter(); // '2'
+
+	Bacon().eat();
 `);
 
 	//TODO: exit process gracefully
