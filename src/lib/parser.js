@@ -5,7 +5,7 @@ import { Statement } from './statement.js';
 
 /** @import { TokenType } from './tokenTypes.js' */
 /** @import { Variable, ExpressionType } from './expression.js' */
-/** @import { StatementType } from './statement.js' */
+/** @import { Func, StatementType } from './statement.js' */
 
 export class Parser {
 	#tokens;
@@ -36,7 +36,8 @@ export class Parser {
 	/** @returns { StatementType } */
 	#declaration() {
 		try {
-			if (this.#match('FUN')) return this.#function('function');
+			if (this.#match('CLASS')) return this.#classDeclaration();
+			if (this.#match('FUN')) return this.#functionDeclaration('function');
 			if (this.#match('VAR')) return this.#varDeclaration();
 			return this.#statement();
 		} catch (error) {
@@ -57,11 +58,20 @@ export class Parser {
 		return this.#expressionStatement();
 	}
 
-	/** 
-	 * @param { string } kind
-	 * @returns { StatementType } 
-	 */
-	#function(kind) {
+	#classDeclaration() {
+		const name = this.#consume('IDENTIFIER', 'Expected class name.');
+		this.#consume('LEFT_BRACE', 'Expected \'{\'.');
+		const methods = [];
+		while (!this.#check('RIGHT_BRACE') && !this.#isAtEnd()) {
+			methods.push(this.#functionDeclaration('method'));
+		}
+		this.#consume('RIGHT_BRACE', 'Expected \'}\'.');
+		
+		return Statement.Class(name, methods);
+	}
+
+	/** @param { string } kind */
+	#functionDeclaration(kind) {
 		const name = this.#consume('IDENTIFIER', `Expected ${kind} name.`);
 		this.#consume('LEFT_PAREN', `Expected '(' after ${kind} name.`);
 		const params = [];
@@ -80,7 +90,6 @@ export class Parser {
 		return Statement.Func(name, params, body);
 	}
 
-	/** @returns { StatementType } */
 	#varDeclaration() {
 		const name = this.#consume('IDENTIFIER', 'Expected variable name.');
 	

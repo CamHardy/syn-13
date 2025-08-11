@@ -1,9 +1,11 @@
 program -> declaration* EOF ;
 
-declaration -> variableDeclaration
+declaration -> classDeclaration
+						 | variableDeclaration
 						 | functionDeclaration
 						 | statement ;
 
+classDeclaration -> 'class' IDENTIFIER '{' function* '}' ;
 variableDeclaration -> 'var' IDENTIFIER ( '=' expression )? ';' ;
 functionDeclaration -> 'fun' function ;
 function -> IDENTIFIER '(' parameters? ')' block ;

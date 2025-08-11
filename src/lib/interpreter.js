@@ -2,10 +2,11 @@ import { System } from './system.js';
 import { Environment } from './environment.js';
 import { Callable } from './callable.js';
 import { Function } from './function.js';
+import { SynClass } from './class.js';
 
 /** @import { Token } from './token.js' */
 /** @import { Literal, Grouping, Unary, Binary, Variable, Assign, Logical, Call, ExpressionType } from './expression.js' */
-/** @import { Block, Expression, Func, If, Print, Return, While, Var, StatementType } from './statement.js' */
+/** @import { Block, Class, Expression, Func, If, Print, Return, While, Var, StatementType } from './statement.js' */
 
 export class Interpreter {
 	globals = new Environment();
@@ -130,6 +131,16 @@ export class Interpreter {
 		}
 
 		return fun.call(this, args);
+	}
+
+	/** @param { Class } node */
+	Class(node) {
+		this.#environment.define(node.name.lexeme, null);
+
+		const klass = new SynClass(node.name.lexeme);
+		this.#environment.assign(node.name, klass);
+
+		return null;
 	}
 
 	/** @param { Expression } node */

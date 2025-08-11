@@ -2,7 +2,7 @@ import { Interpreter } from './interpreter.js';
 import { Token } from './token.js';
 import { System } from './system.js';
 /** @import { Assign, Binary, Call, Grouping, Literal, Logical, Unary, Variable, ExpressionType } from './expression.js' */
-/** @import { Block, Expression, Func, If, Print, Return, Var, While, StatementType } from './statement.js' */
+/** @import { Block, Class, Expression, Func, If, Print, Return, Var, While, StatementType } from './statement.js' */
 /** @import { FunctionType } from './functionTypes.js' */
 
 export class Resolver {
@@ -49,6 +49,14 @@ export class Resolver {
 		for (const arg of node.args) {
 			this.#resolve(arg);
 		}
+
+		return null;
+	}
+
+	/** @param { Class } node */
+	Class(node) {
+		this.#declare(node.name);
+		this.#define(node.name);
 
 		return null;
 	}
@@ -111,7 +119,7 @@ export class Resolver {
 		if (this.#currentFunction === 'NONE') {
 			System.error(node.keyword, 'Can\'t return from top-level code.');
 		}
-		
+
 		if (node.value) this.#resolve(node.value);
 
 		return null;
