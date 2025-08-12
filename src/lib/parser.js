@@ -1,8 +1,8 @@
 import { System } from './system.js';
-import { Token } from './token.js';
 import { Expression } from './expression.js';
 import { Statement } from './statement.js';
 
+/** @import { Token } from './token.js' */
 /** @import { TokenType } from './tokenTypes.js' */
 /** @import { ExpressionType } from './expression.js' */
 /** @import { StatementType } from './statement.js' */
@@ -358,6 +358,8 @@ export class Parser {
 		if (this.#match('NUMBER', 'STRING')) {
 			return Expression.Literal(this.#previous().literal);
 		}
+
+		if (this.#match('THIS')) return Expression.This(this.#previous());
 
 		if (this.#match('IDENTIFIER')) {
 			return Expression.Variable(this.#previous());

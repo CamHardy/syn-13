@@ -6,9 +6,12 @@ export class Callable {
 	arity() {
 		throw new Error('not implemented');
 	}
+  
   /**
-   * @param {Interpreter} interpreter
-   * @param {any[]} args
+   * @param {Interpreter} _interpreter
+   * @param {any[]} _args
    */
-  call(interpreter, args) {}
+  call(_interpreter, _args) {
+    throw new Error('not implemented');
+  }
 }

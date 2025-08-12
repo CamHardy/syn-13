@@ -6,8 +6,10 @@ import { SynClass } from './class.js';
 import { Instance } from './instance.js';
 
 /** @import { Token } from './token.js' */
-/** @import { Assign, Binary, Call, Get, Grouping, Literal, Logical, Set, Unary, Variable, ExpressionType } from './expression.js' */
-/** @import { Block, Class, Expression, Func, If, Print, Return, While, Var, StatementType } from './statement.js' */
+/** @import * as Expression from './expression.js' */
+/** @import { ExpressionType } from './expression.js' */
+/** @import * as Statement from './statement.js' */
+/** @import { StatementType } from './statement.js' */
 
 export class Interpreter {
 	globals = new Environment();
@@ -32,7 +34,7 @@ export class Interpreter {
 		});
 	}
 
-	/** @param { StatementType[] } statements */
+	/** @param { Statement.StatementType[] } statements */
 	interpret(statements) {
 		try {
 			for (const statement of statements) {
@@ -46,7 +48,7 @@ export class Interpreter {
 		}
 	}
 
-	/** @param { Assign } node */
+	/** @param { Expression.Assign } node */
 	Assign(node) {
 		const value = this.#visit(node.value, this);
 
@@ -60,7 +62,7 @@ export class Interpreter {
 		return value;
 	}
 
-	/** @param { Binary } node */
+	/** @param { Expression.Binary } node */
 	Binary(node) {
 		const left = this.#visit(node.left, this);
 		const right = this.#visit(node.right, this);
@@ -106,14 +108,14 @@ export class Interpreter {
 		return null;
 	}	
 
-	/** @param { Block } node */
+	/** @param { Statement.Block } node */
 	Block(node) {
 		this.visitBlock(node.statements, new Environment(this.#environment));
 
 		return null;
 	}
 
-	/** @param { Call } node */
+	/** @param { Expression.Call } node */
 	Call(node) {
 		const callee = this.#visit(node.callee, this);
 
@@ -134,13 +136,13 @@ export class Interpreter {
 		return fun.call(this, args);
 	}
 
-	/** @param { Class } node */
+	/** @param { Statement.Class } node */
 	Class(node) {
 		this.#environment.define(node.name.lexeme, null);
 
 		const methods = new Map();
 		for (const method of node.methods) {
-			const func = new Function(method, this.#environment);
+			const func = new Function(method, this.#environment, method.name.lexeme === 'init');
 			methods.set(method.name.lexeme, func);
 		}
 
@@ -150,22 +152,22 @@ export class Interpreter {
 		return null;
 	}
 
-	/** @param { Expression } node */
+	/** @param { Statement.Expression } node */
 	Expression(node) {
 		this.#visit(node.expression, this);
 
 		return null;
 	}
 
-	/** @param { Func } node */
+	/** @param { Statement.Func } node */
 	Function(node) {
-		const func = new Function(node, this.#environment);
+		const func = new Function(node, this.#environment, false);
 		this.#environment.define(node.name.lexeme, func);
 
 		return null;
 	}
 
-	/** @param { Get } node */
+	/** @param { Expression.Get } node */
 	Get(node) {
 		const object = this.#visit(node.object, this);
 
@@ -176,12 +178,12 @@ export class Interpreter {
 		throw new Error('Only instances have properties.');
 	}
 
-	/** @param { Grouping } node */
+	/** @param { Expression.Grouping } node */
 	Grouping(node) {
 		return this.#visit(node.expression, this);
 	}
 
-	/** @param { If } node */
+	/** @param { Statement.If } node */
 	If(node) {
 		if (this.#isTruthy(this.#visit(node.condition, this))) {
 			this.#visit(node.thenBranch, this);
@@ -192,11 +194,11 @@ export class Interpreter {
 		return null;
 	}
 
-	/** @param { Literal } node */
+	/** @param { Expression.Literal } node */
 	Literal(node) {
 		return node.value;
 	}
-	/** @param { Logical } node */
+	/** @param { Expression.Logical } node */
 	Logical(node) {
 		const left = this.#visit(node.left, this);
 
@@ -209,7 +211,24 @@ export class Interpreter {
 		return this.#visit(node.right, this);
 	}
 
-	/** @param { Set } node */
+	/** @param { Statement.Print } node */
+	Print(node) {
+		const value = this.#visit(node.expression, this);
+		console.log(this.#stringify(value));
+
+		return null;
+	}
+
+	/** @param { Statement.Return } node */
+	Return(node) {
+		let value = null;
+
+		if (node.value !== null) value = this.#visit(node.value, this);
+
+		throw new ReturnException(value);
+	}
+
+	/** @param { Expression.Set } node */
 	Set(node) {
 		const object = this.#visit(node.object, this);
 
@@ -223,24 +242,12 @@ export class Interpreter {
 		return value;
 	}
 
-	/** @param { Print } node */
-	Print(node) {
-		const value = this.#visit(node.expression, this);
-		console.log(this.#stringify(value));
-
-		return null;
+	/** @param { Expression.This } node */
+	This(node) {
+		return this.#lookUpVariable(node.keyword, node);
 	}
 
-	/** @param { Return } node */
-	Return(node) {
-		let value = null;
-
-		if (node.value !== null) value = this.#visit(node.value, this);
-
-		throw new ReturnException(value);
-	}
-
-	/** @param { Unary } node */
+	/** @param { Expression.Unary } node */
 	Unary(node) {
 		const right = this.#visit(node.right, this);
 		switch (node.operator.type) {
@@ -254,7 +261,7 @@ export class Interpreter {
 		return null;
 	}
 
-	/** @param { Var } node */
+	/** @param { Statement.Var } node */
 	Var(node) {
 		let value = null;
 		if (node.initializer) {
@@ -266,12 +273,12 @@ export class Interpreter {
 		return null;
 	}
 
-	/** @param { Variable } node */
+	/** @param { Expression.Variable } node */
 	Variable(node) {
 		return this.#lookUpVariable(node.name, node);
 	}
 
-	/** @param { While } node */
+	/** @param { Statement.While } node */
 	While(node) {
 		while (this.#isTruthy(this.#visit(node.condition, this))) {
 			this.#visit(node.body, this);

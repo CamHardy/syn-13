@@ -1,7 +1,7 @@
 /** @import { ExpressionType } from './expression.js' */
 /** @import { Token } from './token.js' */
 
-/** @typedef { Block | Class |Expression | Func | If | Print | Return | Var | While } StatementType */
+/** @typedef { Block | Class | Expression | Func | If | Print | Return | Var | While } StatementType */
 
 /**
  * @typedef { Object } Block
@@ -109,7 +109,7 @@ export class Statement {
 	*/
 	static Func(name, params, body) {
 		return {
-			type: 'Function',
+			type:'Function',
 			name,
 			params,
 			body

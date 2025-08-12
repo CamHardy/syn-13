@@ -1,13 +1,11 @@
 import { Scanner } from './scanner.js';
 import { Parser } from './parser.js';
-import { AstPrinter } from './astPrinter.js';
-import { Expression } from './expression.js';
-import { Interpreter, RuntimeError } from './interpreter.js';
-import { Token } from './token.js';
+import { Interpreter } from './interpreter.js';
 import { Resolver } from './resolver.js';
 
-/** @import { ExpressionType } from './expression.js' } */
-/** @import { StatementType } from './statement.js' } */
+/** @import { Token } from './token.js' */
+/** @import { StatementType } from './statement.js' */
+/** @import { RuntimeError } from './interpreter.js' */
 
 export class System {
 	static #interpreter = new Interpreter();

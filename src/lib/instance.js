@@ -17,7 +17,7 @@ export class Instance {
 		}
 
 		const method = this.#klass.findMethod(name.lexeme);
-		if (method !== null) return method;
+		if (method) return method.bind(this);
 
 		throw new Error(`Undefined property '${name.lexeme}'.`);
 	}

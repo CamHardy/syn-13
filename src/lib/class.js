@@ -1,7 +1,7 @@
 import { Callable } from './callable.js';
 import { Instance } from './instance.js';
 /** @import { Interpreter } from './interpreter.js' */
-/** @import { Function } from './function.js' */
+/** @import { Function as SynFunction } from './function.js' */
 
 export class SynClass extends Callable {
 	name;
@@ -9,7 +9,7 @@ export class SynClass extends Callable {
 
 	/** 
 	 * @param { string } name 
-	 * @param { Map<string, Function> } methods
+	 * @param { Map<string, SynFunction> } methods
 	 */
 	constructor(name, methods) {
 		super();
@@ -27,15 +27,25 @@ export class SynClass extends Callable {
 	}
 
 	/** 
-	 * @param { Interpreter } _interpreter 
-	 * @param { any[] } _arguments
+	 * @param { Interpreter } interpreter 
+	 * @param { any[] } args
 	 */
-	call(_interpreter, _arguments) {
-		return new Instance(this);
+	call(interpreter, args) {
+		const instance = new Instance(this);
+		const initializer = this.findMethod('init');
+
+		if (initializer) {
+			initializer.bind(instance).call(interpreter, args);
+		}
+
+		return instance;
 	}
 
 	arity() {
-		return 0;
+		const initializer = this.findMethod('init');
+		if (!initializer) return 0;
+
+		return initializer.arity();
 	}
 
 	toString() {

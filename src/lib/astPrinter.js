@@ -1,22 +1,26 @@
-/** @import { Binary, Grouping, Literal, Unary, ExpressionType } from './expression.js' */
+/** 
+ * @import * as Expression from './expression.js' 
+ * @import { ExpressionType } from './expression.js'
+ */
+
 
 export class AstPrinter {
-	/** @param { Binary } node */
+	/** @param { Expression.Binary } node */
 	static Binary(node) {
 		return `(${node.operator.lexeme} ${this.#visit(node.left, AstPrinter)} ${this.#visit(node.right, AstPrinter)})`;
 	}
 
-	/** @param { Grouping } node */
+	/** @param { Expression.Grouping } node */
 	static Grouping(node) {
 		return `(group ${this.#visit(node.expression, AstPrinter)})`;
 	}
 
-	/** @param { Literal } node */
+	/** @param { Expression.Literal } node */
 	static Literal(node) {
 		return node.value === null ? 'nil' : String(node.value);
 	}
 
-	/** @param { Unary } node */
+	/** @param { Expression.Unary } node */
 	static Unary(node) {
 		return `(${node.operator.lexeme} ${this.#visit(node.right, AstPrinter)})`;
 	}

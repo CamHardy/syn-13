@@ -1,6 +1,8 @@
+/** @import { TokenType } from './tokenTypes.js'} */
+
 export class Token {
 	/** 
-	 * @param { import('./tokenTypes').TokenType } type
+	 * @param { TokenType } type
 	 * @param { string } lexeme
 	 * @param { any } literal
 	 * @param { number } line

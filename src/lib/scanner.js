@@ -1,6 +1,7 @@
 import { System } from './system.js';
 import { Token } from './token.js';
-import { Tokens } from './tokenTypes.js';
+
+/** @import { TokenType } from './tokenTypes.js' */
 
 export class Scanner {
 	#source;
@@ -10,7 +11,7 @@ export class Scanner {
 	#current = 0;
 	#line = 1;
 
-	/** @type { Map<string, import('./tokenTypes').TokenType> } */
+	/** @type { Map<string, TokenType> } */
 	static #keywords;
 
 	static {
@@ -125,7 +126,7 @@ export class Scanner {
 			while (this.#isDigit(this.#peek())) this.#advance();
 		}
 
-		this.#addToken(Tokens.NUMBER, parseFloat(this.#source.substring(this.#start, this.#current)));
+		this.#addToken('NUMBER', parseFloat(this.#source.substring(this.#start, this.#current)));
 	}
 
 	#string() {
@@ -195,7 +196,7 @@ export class Scanner {
 	}
 
 	/** 
-	 * @param { import('./tokenTypes').TokenType } type 
+	 * @param { TokenType } type 
 	 * @param { number | string | null } literal
 	 */
 	#addToken(type, literal = null) {

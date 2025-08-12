@@ -1,6 +1,6 @@
 /** @import { Token } from './token.js' */
 
-/** @typedef { Assign | Binary | Call | Get | Grouping | Literal | Logical | Set | Unary | Variable } ExpressionType */
+/** @typedef { Assign | Binary | Call | Get | Grouping | Literal | Logical | Set | This | Unary | Variable } ExpressionType */
 
 /** 
  * @typedef { Object } Assign
@@ -58,6 +58,12 @@
  * @property { ExpressionType } object
  * @property { Token } name
  * @property { ExpressionType } value
+ */
+
+/** 
+ * @typedef { Object } This
+ * @property { 'This' } type
+ * @property { Token } keyword
  */
 
 /** 
@@ -179,6 +185,17 @@ export class Expression {
 			object,
 			name,
 			value
+		};
+	}
+
+	/** 
+	 * @param { Token } keyword 
+	 * @returns { This }
+	 */
+	static This(keyword) {
+		return {
+			type: 'This',
+			keyword
 		};
 	}
 

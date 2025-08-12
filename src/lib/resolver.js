@@ -1,9 +1,13 @@
-import { Interpreter } from './interpreter.js';
-import { Token } from './token.js';
 import { System } from './system.js';
-/** @import { Assign, Binary, Call, Get, Grouping, Literal, Logical, Set, Unary, Variable, ExpressionType } from './expression.js' */
-/** @import { Block, Class, Expression, Func, If, Print, Return, Var, While, StatementType } from './statement.js' */
+
+/** @import { Interpreter } from './interpreter.js'; */
+/** @import { Token } from './token.js' */
+/** @import * as Expression from './expression.js' */
+/** @import { ExpressionType } from './expression.js' */
+/** @import * as Statement from './statement.js' */
+/** @import { StatementType } from './statement.js' */
 /** @import { FunctionType } from './functionTypes.js' */
+/** @import { ClassType } from './classTypes.js' */
 
 export class Resolver {
 	#interpreter;
@@ -11,13 +15,15 @@ export class Resolver {
 	#scopes = [];
 	/** @type { FunctionType } */
 	#currentFunction = 'NONE';
+	/** @type { ClassType } */
+	#currentClass = 'NONE';
 
 	/** @param { Interpreter } interpreter */
 	constructor(interpreter) {
 		this.#interpreter = interpreter;
 	}
 
-	/** @param { Assign } node */
+	/** @param { Expression.Assign } node */
 	Assign(node) {
 		this.#resolve(node.value);
 		this.#resolveLocal(node, node.name);
@@ -25,7 +31,7 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Binary } node */
+	/** @param { Expression.Binary } node */
 	Binary(node) {
 		this.#resolve(node.left);
 		this.#resolve(node.right);
@@ -33,7 +39,7 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Block } node */
+	/** @param { Statement.Block } node */
 	Block(node) {
 		this.#beginScope();
 		this.resolveBlock(node.statements);
@@ -42,7 +48,7 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Call } node */
+	/** @param { Expression.Call } node */
 	Call(node) {
 		this.#resolve(node.callee);
 
@@ -53,27 +59,42 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Class } node */
+	/** @param { Statement.Class } node */
 	Class(node) {
+		const enclosingClass = this.#currentClass;
+		this.#currentClass = 'CLASS';
+
 		this.#declare(node.name);
 		this.#define(node.name);
 
+		this.#beginScope();
+		this.#scopes[this.#scopes.length - 1].set('this', true);
+
 		for (const method of node.methods) {
-			const declaration = 'METHOD';
-			this.#resolveFunction(method, 'METHOD');
+			/** @type { FunctionType } */
+			let declaration = 'METHOD';
+
+			if (method.name.lexeme === 'init') {
+				declaration = 'INITIALIZER';
+			}
+
+			this.#resolveFunction(method, declaration);
 		}
+
+		this.#endScope();
+		this.#currentClass = enclosingClass;
 
 		return null;
 	}
 
-	/** @param { Expression } node */
+	/** @param { Statement.Expression } node */
 	Expression(node) {
 		this.#resolve(node.expression);
 
 		return null;
 	}
 
-	/** @param { Func } node */
+	/** @param { Statement.Func } node */
 	Function(node) {
 		this.#declare(node.name);
 		this.#define(node.name);
@@ -83,21 +104,21 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Get } node */
+	/** @param { Expression.Get } node */
 	Get(node) {
 		this.#resolve(node.object);
 
 		return null;
 	}
 
-	/** @param { Grouping } node */
+	/** @param { Expression.Grouping } node */
 	Grouping(node) {
 		this.#resolve(node.expression);
 
 		return null;
 	}
 
-	/** @param { If } node */
+	/** @param { Statement.If } node */
 	If(node) {
 		this.#resolve(node.condition);
 		this.#resolve(node.thenBranch);
@@ -106,12 +127,12 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Literal } _node */
+	/** @param { Expression.Literal } _node */
 	Literal(_node) {
 		return null;
 	}
 
-	/** @param { Logical } node */
+	/** @param { Expression.Logical } node */
 	Logical(node) {
 		this.#resolve(node.left);
 		this.#resolve(node.right);
@@ -119,25 +140,31 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Print } node */
+	/** @param { Statement.Print } node */
 	Print(node) {
 		this.#resolve(node.expression);
 
 		return null;
 	}
 
-	/** @param { Return } node */
+	/** @param { Statement.Return } node */
 	Return(node) {
 		if (this.#currentFunction === 'NONE') {
 			System.error(node.keyword, 'Can\'t return from top-level code.');
 		}
 
-		if (node.value) this.#resolve(node.value);
+		if (node.value) {
+			if (this.#currentFunction === 'INITIALIZER') {
+				System.error(node.keyword, 'Can\'t return a value from an initializer.');
+			}
+			
+			this.#resolve(node.value);
+		}
 
 		return null;
 	}
 
-	/** @param { Set } node */
+	/** @param { Expression.Set } node */
 	Set(node) {
 		this.#resolve(node.value);
 		this.#resolve(node.object);
@@ -145,14 +172,25 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Unary } node */
+	/** @param { Expression.This } node */
+	This(node) {
+		if (this.#currentClass === 'NONE') {
+			System.error(node.keyword, "Can't use 'this' outside of a class.");
+		}
+
+		this.#resolveLocal(node, node.keyword);
+
+		return null;
+	}
+
+	/** @param { Expression.Unary } node */
 	Unary(node) {
 		this.#resolve(node.right);
 
 		return null;
 	}
 
-	/** @param { Var } node */
+	/** @param { Statement.Var } node */
 	Var(node) {
 		this.#declare(node.name);
 
@@ -165,12 +203,12 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { Variable } node */
+	/** @param { Expression.Variable } node */
 	Variable(node) {
 		const length = this.#scopes.length;
 		
 		if (length !== 0 && this.#scopes[length - 1].get(node.name.lexeme) === false) {
-			throw new Error('Can\'t read local variable in its own initializer.');
+			throw new Error("Can't read local variable in its own initializer.");
 		}
 
 		this.#resolveLocal(node, node.name);
@@ -178,7 +216,7 @@ export class Resolver {
 		return null;
 	}
 
-	/** @param { While } node */
+	/** @param { Statement.While } node */
 	While(node) {
 		this.#resolve(node.condition);
 		this.#resolve(node.body);
@@ -187,7 +225,7 @@ export class Resolver {
 	}
 
 	/** 
-	 * @param { Func } node 
+	 * @param { Statement.Func } node 
 	 * @param { FunctionType } type
 	 */
 	#resolveFunction(node, type) {
