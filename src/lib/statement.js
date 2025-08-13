@@ -1,4 +1,4 @@
-/** @import { ExpressionType } from './expression.js' */
+/** @import { Variable, ExpressionType } from './expression.js' */
 /** @import { Token } from './token.js' */
 
 /** @typedef { Block | Class | Expression | Func | If | Print | Return | Var | While } StatementType */
@@ -13,6 +13,7 @@
  * @typedef { Object } Class
  * @property { 'Class' } type
  * @property { Token } name
+ * @property { Variable } superclass
  * @property { Func[] } methods
  */
 
@@ -79,13 +80,15 @@ export class Statement {
 
 	/** 
 	 * @param { Token } name 
+	 * @param { Variable } superclass
 	 * @param { Func[] } methods 
 	 * @returns { Class }
 	 */
-	static Class(name, methods) {
+	static Class(name, superclass, methods) {
 		return {
 			type: 'Class',
 			name,
+			superclass,
 			methods
 		}
 	}

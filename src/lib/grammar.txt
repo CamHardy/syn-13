@@ -5,7 +5,7 @@ declaration -> classDeclaration
 						 | functionDeclaration
 						 | statement ;
 
-classDeclaration -> 'class' IDENTIFIER '{' function* '}' ;
+classDeclaration -> 'class' IDENTIFIER ( '<' IDENTIFIER )? '{' function* '}' ;
 variableDeclaration -> 'var' IDENTIFIER ( '=' expression )? ';' ;
 functionDeclaration -> 'fun' function ;
 function -> IDENTIFIER '(' parameters? ')' block ;

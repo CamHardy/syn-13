@@ -67,6 +67,14 @@ export class Resolver {
 		this.#declare(node.name);
 		this.#define(node.name);
 
+		if (node.superclass) {
+			if (node.name.lexeme === node.superclass.name.lexeme) {
+				System.error(node.superclass.name, 'A class can\'t inherit from itself.');
+			}
+			
+			this.#resolve(node.superclass);
+		}
+
 		this.#beginScope();
 		this.#scopes[this.#scopes.length - 1].set('this', true);
 
@@ -157,7 +165,7 @@ export class Resolver {
 			if (this.#currentFunction === 'INITIALIZER') {
 				System.error(node.keyword, 'Can\'t return a value from an initializer.');
 			}
-			
+
 			this.#resolve(node.value);
 		}
 

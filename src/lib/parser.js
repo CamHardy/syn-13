@@ -4,7 +4,7 @@ import { Statement } from './statement.js';
 
 /** @import { Token } from './token.js' */
 /** @import { TokenType } from './tokenTypes.js' */
-/** @import { ExpressionType } from './expression.js' */
+/** @import { Variable, ExpressionType } from './expression.js' */
 /** @import { StatementType } from './statement.js' */
 
 export class Parser {
@@ -60,6 +60,13 @@ export class Parser {
 
 	#classDeclaration() {
 		const name = this.#consume('IDENTIFIER', 'Expected class name.');
+
+		let superclass = null;
+		if (this.#match('LESS')) {
+			this.#consume('IDENTIFIER', 'Expected superclass name.');
+			superclass = Expression.Variable(this.#previous());
+		}
+
 		this.#consume('LEFT_BRACE', 'Expected \'{\'.');
 		const methods = [];
 		while (!this.#check('RIGHT_BRACE') && !this.#isAtEnd()) {
@@ -67,7 +74,7 @@ export class Parser {
 		}
 		this.#consume('RIGHT_BRACE', 'Expected \'}\'.');
 		
-		return Statement.Class(name, methods);
+		return Statement.Class(name, /** @type { Variable } */ (superclass), methods);
 	}
 
 	/** @param { string } kind */

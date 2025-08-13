@@ -138,6 +138,16 @@ export class Interpreter {
 
 	/** @param { Statement.Class } node */
 	Class(node) {
+		let superclass = null;
+
+		if (node.superclass) {
+			superclass = this.#visit(node.superclass, this);
+
+			if (!(superclass instanceof SynClass)) {
+				throw new Error('Superclass must be a class.');
+			}
+		}
+
 		this.#environment.define(node.name.lexeme, null);
 
 		const methods = new Map();
@@ -146,7 +156,7 @@ export class Interpreter {
 			methods.set(method.name.lexeme, func);
 		}
 
-		const klass = new SynClass(node.name.lexeme, methods);
+		const klass = new SynClass(node.name.lexeme, superclass, methods);
 		this.#environment.assign(node.name, klass);
 
 		return null;

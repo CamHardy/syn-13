@@ -5,15 +5,18 @@ import { Instance } from './instance.js';
 
 export class SynClass extends Callable {
 	name;
+	superclass;
 	methods;
 
 	/** 
 	 * @param { string } name 
+	 * @param { SynClass | null } superclass
 	 * @param { Map<string, SynFunction> } methods
 	 */
-	constructor(name, methods) {
+	constructor(name, superclass, methods) {
 		super();
 		this.name = name;
+		this.superclass = superclass;
 		this.methods = methods;
 	}
 
