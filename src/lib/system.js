@@ -65,13 +65,20 @@ export class System {
 
 //TODO: handle errors
 System.run(`
-	class Bacon {
-		eat() {
-			print("Mum get the camera, I'm eating bacon!");
+	class Donut {
+		cook() {
+			print("Cooking a donut...");
 		}
 	}
 
-	Bacon().eat();
+	class BostonCream < Donut {
+		eat() {
+			print("Eating a Boston Cream donut...");
+		}
+	}
+
+	BostonCream().cook();
+	BostonCream().eat();
 `);
 
 	//TODO: exit process gracefully

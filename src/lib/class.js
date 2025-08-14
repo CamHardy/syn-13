@@ -20,10 +20,17 @@ export class SynClass extends Callable {
 		this.methods = methods;
 	}
 
-	/** @param { string } name */
+	/** 
+	 * @param { string } name 
+	 * @returns { SynFunction | null }
+	 */
 	findMethod(name) {
 		if (this.methods.has(name)) {
-			return this.methods.get(name);
+			return this.methods.get(name) ?? null;
+		}
+
+		if (this.superclass) {
+			return this.superclass.findMethod(name);
 		}
 
 		return null;
