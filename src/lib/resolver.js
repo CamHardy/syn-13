@@ -75,6 +75,11 @@ export class Resolver {
 			this.#resolve(node.superclass);
 		}
 
+		if (node.superclass) {
+			this.#beginScope();
+			this.#scopes[this.#scopes.length - 1].set('super', true);
+		}
+
 		this.#beginScope();
 		this.#scopes[this.#scopes.length - 1].set('this', true);
 
@@ -90,6 +95,11 @@ export class Resolver {
 		}
 
 		this.#endScope();
+
+		if (node.superclass) {
+			this.#endScope();
+		}
+
 		this.#currentClass = enclosingClass;
 
 		return null;
@@ -176,6 +186,13 @@ export class Resolver {
 	Set(node) {
 		this.#resolve(node.value);
 		this.#resolve(node.object);
+
+		return null;
+	}
+
+	/** @param { Expression.Super } node */
+	Super(node) {
+		this.#resolveLocal(node, node.keyword);
 
 		return null;
 	}

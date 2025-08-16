@@ -366,6 +366,14 @@ export class Parser {
 			return Expression.Literal(this.#previous().literal);
 		}
 
+		if (this.#match('SUPER')) {
+			const keyword = this.#previous();
+			this.#consume('DOT', "Expected '.' after 'super'.");
+			const method = this.#consume('IDENTIFIER', "Expected superclass method name.");
+			
+			return Expression.Super(keyword, method);
+		}
+
 		if (this.#match('THIS')) return Expression.This(this.#previous());
 
 		if (this.#match('IDENTIFIER')) {

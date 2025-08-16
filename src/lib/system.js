@@ -67,13 +67,17 @@ export class System {
 System.run(`
 	class Donut {
 		cook() {
-			print("Cooking a donut...");
+			print("Fry the donut until golden brown...");
 		}
 	}
 
 	class BostonCream < Donut {
+		cook() {
+			super.cook();
+			print("Pipe the donut full of custard and frost with chocolate icing...");
+		}
 		eat() {
-			print("Eating a Boston Cream donut...");
+			print("You are now eating a Boston Cream donut.");
 		}
 	}
 

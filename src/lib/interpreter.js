@@ -13,6 +13,7 @@ import { Instance } from './instance.js';
 
 export class Interpreter {
 	globals = new Environment();
+	/** @type { Environment } */
 	#environment = this.globals;
 	#locals = new Map();
 
@@ -22,10 +23,10 @@ export class Interpreter {
 				return 0;
 			}
 			/**
-			 * @param { Interpreter } interpreter 
-			 * @param { any[] } args 
+			 * @param { Interpreter } _interpreter 
+			 * @param { any[] } _args 
 			 */
-			call(interpreter, args) {
+			call(_interpreter, _args) {
 				return Date.now() / 1000;
 			}
 			toString() {
@@ -150,14 +151,24 @@ export class Interpreter {
 
 		this.#environment.define(node.name.lexeme, null);
 
+		if (node.superclass) {
+			this.#environment = new Environment(this.#environment);
+			this.#environment.define('super', superclass);
+		}
+
 		const methods = new Map();
 		for (const method of node.methods) {
 			const func = new Function(method, this.#environment, method.name.lexeme === 'init');
 			methods.set(method.name.lexeme, func);
 		}
 
-		const klass = new SynClass(node.name.lexeme, superclass, methods);
-		this.#environment.assign(node.name, klass);
+		const synClass = new SynClass(node.name.lexeme, superclass, methods);
+		
+		if (node.superclass) {
+			this.#environment = /** @type { any } */ (this.#environment.enclosing);
+		}
+		
+		this.#environment.assign(node.name, synClass);
 
 		return null;
 	}
@@ -250,6 +261,20 @@ export class Interpreter {
 		object.set(node.name, value);
 
 		return value;
+	}
+
+	/** @param { Expression.Super } node */
+	Super(node) {
+		const distance = this.#locals.get(node);
+		const superclass = this.#environment.getAt(distance, 'super');
+		const object = this.#environment.getAt(distance - 1, 'this');
+		const method = superclass.findMethod(node.method.lexeme);
+
+		if (method === null) {
+			throw new Error(`Undefined property '${node.method.lexeme}'.`);
+		}
+
+		return method.bind(object);
 	}
 
 	/** @param { Expression.This } node */

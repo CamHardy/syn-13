@@ -1,6 +1,6 @@
 /** @import { Token } from './token.js' */
 
-/** @typedef { Assign | Binary | Call | Get | Grouping | Literal | Logical | Set | This | Unary | Variable } ExpressionType */
+/** @typedef { Assign | Binary | Call | Get | Grouping | Literal | Logical | Set | Super | This | Unary | Variable } ExpressionType */
 
 /** 
  * @typedef { Object } Assign
@@ -58,6 +58,13 @@
  * @property { ExpressionType } object
  * @property { Token } name
  * @property { ExpressionType } value
+ */
+
+/** 
+ * @typedef { Object } Super
+ * @property { 'Super' } type
+ * @property { Token } keyword
+ * @property { Token } method
  */
 
 /** 
@@ -185,6 +192,19 @@ export class Expression {
 			object,
 			name,
 			value
+		};
+	}
+
+	/** 
+	 * @param { Token } keyword 
+	 * @param { Token } method 
+	 * @returns { Super }
+	 */
+	static Super(keyword, method) {
+		return {
+			type: 'Super',
+			keyword,
+			method
 		};
 	}
 

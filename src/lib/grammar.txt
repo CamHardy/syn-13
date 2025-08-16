@@ -41,11 +41,21 @@ factor -> unary ( ( '/' | '*' ) unary )* ;
 
 unary -> ( '!' | '-' ) unary ;
 call -> primary ( '(' arguments? ')' | '.' IDENTIFIER )* ;
-primary -> 'true' | 'false' | 'nil' | NUMBER | STRING | IDENTIFIER | '(' expression ')' ;
+primary -> 'true' 
+				 | 'false' 
+				 | 'nil' 
+				 | 'this' 
+				 | NUMBER 
+				 | STRING 
+				 | IDENTIFIER 
+				 | '(' expression ')' 
+				 | 'super' '.' IDENTIFIER ;
 arguments -> expression ( ',' expression )* ;
 
 NUMBER -> DIGIT+ ( '.' DIGIT+ )? ;
 STRING -> '"' <any char except '"'>* '"' ;
 IDENTIFIER -> ALPHA ( ALPHA | DIGIT )* ;
-ALPHA -> 'a' ... 'z' | 'A' ... 'Z' | '_' ;
+ALPHA -> 'a' ... 'z' 
+			 | 'A' ... 'Z' 
+			 | '_' ;
 DIGIT -> '0' ... '9' ;
