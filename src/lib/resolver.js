@@ -71,6 +71,8 @@ export class Resolver {
 			if (node.name.lexeme === node.superclass.name.lexeme) {
 				System.error(node.superclass.name, 'A class can\'t inherit from itself.');
 			}
+
+			this.#currentClass = 'SUBCLASS';
 			
 			this.#resolve(node.superclass);
 		}
@@ -192,6 +194,11 @@ export class Resolver {
 
 	/** @param { Expression.Super } node */
 	Super(node) {
+		if (this.#currentClass === 'NONE') {
+			System.error(node.keyword, "Can't use 'super' outside of a class.");
+		} else if (this.#currentClass !== 'SUBCLASS') {
+			System.error(node.keyword, "Can't use 'super' in a class with no superclass.");
+		}
 		this.#resolveLocal(node, node.keyword);
 
 		return null;
