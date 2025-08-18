@@ -1,5 +1,5 @@
 /**
- * @typedef { 'NONE' | 'CLASS' } ClassType
+ * @typedef { 'NONE' | 'CLASS' | 'SUBCLASS' } ClassType
  */
 
 /** @enum { ClassType } */

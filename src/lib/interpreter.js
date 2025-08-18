@@ -13,7 +13,6 @@ import { Instance } from './instance.js';
 
 export class Interpreter {
 	globals = new Environment();
-	/** @type { Environment } */
 	#environment = this.globals;
 	#locals = new Map();
 
@@ -53,8 +52,9 @@ export class Interpreter {
 	Assign(node) {
 		const value = this.#visit(node.value, this);
 
-		const distance = this.#locals.get(node.name);
-		if (distance !== null) {
+		const distance = this.#locals.get(node);
+		
+		if (distance !== undefined) {
 			this.#environment.assignAt(distance, node.name, value);
 		} else {
 			this.globals.assign(node.name, value);
@@ -141,7 +141,7 @@ export class Interpreter {
 	Class(node) {
 		let superclass = null;
 
-		if (node.superclass) {
+		if (node.superclass !== null) {
 			superclass = this.#visit(node.superclass, this);
 
 			if (!(superclass instanceof SynClass)) {
@@ -151,7 +151,7 @@ export class Interpreter {
 
 		this.#environment.define(node.name.lexeme, null);
 
-		if (node.superclass) {
+		if (node.superclass !== null) {
 			this.#environment = new Environment(this.#environment);
 			this.#environment.define('super', superclass);
 		}
@@ -164,7 +164,7 @@ export class Interpreter {
 
 		const synClass = new SynClass(node.name.lexeme, superclass, methods);
 		
-		if (node.superclass) {
+		if (node.superclass !== null) {
 			this.#environment = /** @type { any } */ (this.#environment.enclosing);
 		}
 		
@@ -208,7 +208,7 @@ export class Interpreter {
 	If(node) {
 		if (this.#isTruthy(this.#visit(node.condition, this))) {
 			this.#visit(node.thenBranch, this);
-		} else if (node.elseBranch) {
+		} else if (node.elseBranch !== null) {
 			this.#visit(node.elseBranch, this);
 		}
 
@@ -299,7 +299,8 @@ export class Interpreter {
 	/** @param { Statement.Var } node */
 	Var(node) {
 		let value = null;
-		if (node.initializer) {
+
+		if (node.initializer !== null) {
 			value = this.#visit(node.initializer, this);
 		}
 
@@ -327,9 +328,9 @@ export class Interpreter {
 	 * @param { ExpressionType } node 
 	 */
 	#lookUpVariable(name, node) {
-		const distance = this.#locals.get(name);
+		const distance = this.#locals.get(node);
 
-		if (distance !== null) {
+		if (distance !== undefined) {
 			return this.#environment.getAt(distance, name.lexeme);
 		} else {
 			return this.globals.get(name);

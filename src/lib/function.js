@@ -1,10 +1,10 @@
 import { Callable } from './callable.js';
 import { Environment } from './environment.js';
+import { ReturnException } from './interpreter.js';
 
 /** @import { Interpreter } from './interpreter.js' */
 /** @import { Instance } from './instance.js' */
 /** @import { Func } from './statement.js' */
-/** @import { ReturnException } from './interpreter.js'} */
 
 export class Function extends Callable {
 	#isInitializer;
@@ -48,9 +48,12 @@ export class Function extends Callable {
 		try {
 			interpreter.visitBlock(this.#declaration.body, environment);
 		} catch (returnValue) {
-			if (this.#isInitializer) return this.#closure.getAt(0, 'this');
-			
-			return /** @type { ReturnException } */ (returnValue).value;
+			if (returnValue instanceof ReturnException) {
+				if (this.#isInitializer) return this.#closure.getAt(0, 'this');
+				
+				return returnValue.value;
+			}
+			throw returnValue;
 		}
 
 		if (this.#isInitializer) return this.#closure.getAt(0, 'this');

@@ -256,6 +256,25 @@ export class Resolver {
 		return null;
 	}
 
+	/**
+	 * @param { ExpressionType | StatementType } element 
+	 * @param { any } [visitor]
+	 */
+	#resolve(element, visitor = this) {
+		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element.type}`);
+
+		return visitor[element.type](element);
+	}
+
+	/** 
+	 * @param { StatementType[] } statements 
+	 */
+	resolveBlock(statements) {
+		for (const statement of statements) {
+			this.#resolve(statement);
+		}
+	}
+	
 	/** 
 	 * @param { Statement.Func } node 
 	 * @param { FunctionType } type
@@ -317,24 +336,5 @@ export class Resolver {
 
 		const scope = this.#scopes[this.#scopes.length - 1];
 		scope.set(name.lexeme, true);
-	}
-
-	/**
-	 * @param { ExpressionType | StatementType } element 
-	 * @param { any } [visitor]
-	 */
-	#resolve(element, visitor = this) {
-		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element.type}`);
-
-		return visitor[element.type](element);
-	}
-
-	/** 
-	 * @param { StatementType[] } statements 
-	 */
-	resolveBlock(statements) {
-		for (const statement of statements) {
-			this.#resolve(statement);
-		}
 	}
 }

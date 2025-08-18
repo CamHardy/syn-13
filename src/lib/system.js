@@ -65,24 +65,14 @@ export class System {
 
 //TODO: handle errors
 System.run(`
-	class Donut {
-		cook() {
-			print("Fry the donut until golden brown...");
-		}
+	fun fib(n) {
+		if (n < 2) return n;
+		return fib(n - 1) + fib(n - 2);
 	}
-
-	class BostonCream < Donut {
-		cook() {
-			super.cook();
-			print("Pipe the donut full of custard and frost with chocolate icing...");
-		}
-		eat() {
-			print("You are now eating a Boston Cream donut.");
-		}
-	}
-
-	BostonCream().cook();
-	BostonCream().eat();
+	var before = clock();
+	print fib(25);
+	var after = clock();
+	print after - before;
 `);
 
 	//TODO: exit process gracefully
