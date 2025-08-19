@@ -64,16 +64,16 @@ export class System {
 }
 
 //TODO: handle errors
-System.run(`
-	fun fib(n) {
-		if (n < 2) return n;
-		return fib(n - 1) + fib(n - 2);
-	}
-	var before = clock();
-	print fib(25);
-	var after = clock();
-	print after - before;
-`);
+// System.run(`
+// 	fun fib(n) {
+// 		if (n < 2) return n;
+// 		return fib(n - 1) + fib(n - 2);
+// 	}
+// 	var before = clock();
+// 	print fib(40);
+// 	var after = clock();
+// 	print after - before;
+// `);
 
 	//TODO: exit process gracefully
 if (System.hadError) console.error('I had an error :(');
