@@ -16,4 +16,17 @@ describe('Syn-13 Interpreter', () => {
     System.run('print 5 - 3 * 2;');
     expect(consoleMock).toHaveBeenLastCalledWith('-1');
   });
+
+  it('handles boolean expressions', () => {
+    System.run('print true;');
+    expect(consoleMock).toHaveBeenLastCalledWith('true');
+    System.run('print false;');
+    expect(consoleMock).toHaveBeenLastCalledWith('false');
+    System.run('print !true;');
+    expect(consoleMock).toHaveBeenLastCalledWith('false');
+    System.run('print 3 < 5;');
+    expect(consoleMock).toHaveBeenLastCalledWith('true');
+    System.run('print 3 == 3;');
+    expect(consoleMock).toHaveBeenLastCalledWith('true');
+  });
 });
