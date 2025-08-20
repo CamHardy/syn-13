@@ -1,10 +1,10 @@
-import { afterAll, describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { System } from '../system.js';
 
 describe('Syn-13 Interpreter', () => {
   const consoleMock = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
-  afterAll(() => {
+  afterEach(() => {
     consoleMock.mockReset();
   });
 
@@ -28,5 +28,20 @@ describe('Syn-13 Interpreter', () => {
     expect(consoleMock).toHaveBeenLastCalledWith('true');
     System.run('print 3 == 3;');
     expect(consoleMock).toHaveBeenLastCalledWith('true');
+  });
+
+  it('supports variable declarations', () => {
+    System.run('var a = 10; print a;');
+    expect(consoleMock).toHaveBeenLastCalledWith('10');
+    System.run('var x = 2; var y = 3; print x + y;');
+    expect(consoleMock).toHaveBeenLastCalledWith('5');
+    System.run('var msg = "hi"; print msg;');
+    expect(consoleMock).toHaveBeenLastCalledWith('hi');
+  });
+
+  it('supports variable re-assignment', () => {
+    System.run('var a = 1; print a; a = 42; print a;');
+    expect(consoleMock).toHaveBeenNthCalledWith(1, '1');
+    expect(consoleMock).toHaveBeenNthCalledWith(2, '42');
   });
 });
