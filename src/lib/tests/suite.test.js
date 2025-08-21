@@ -44,4 +44,29 @@ describe('Syn-13 Interpreter', () => {
     expect(consoleMock).toHaveBeenNthCalledWith(1, '1');
     expect(consoleMock).toHaveBeenNthCalledWith(2, '42');
   });
+
+  it('runs if statements', () => {
+    System.run('if (true) print 123;');
+    expect(consoleMock).toHaveBeenLastCalledWith('123');
+    System.run('if (false) print 1; else print 2;');
+    expect(consoleMock).toHaveBeenLastCalledWith('2');
+  });
+
+  it('runs while loops', () => {
+    System.run('var i = 0; while (i < 5) { print i; i = i + 1; }');
+    expect(consoleMock).toHaveBeenNthCalledWith(1, '0');
+    expect(consoleMock).toHaveBeenNthCalledWith(2, '1');
+    expect(consoleMock).toHaveBeenNthCalledWith(3, '2');
+    expect(consoleMock).toHaveBeenNthCalledWith(4, '3');
+    expect(consoleMock).toHaveBeenNthCalledWith(5, '4');
+  });
+
+  it('runs for loops', () => {
+    System.run('for (var i = 9; i >= 5; i = i - 1) print i;');
+    expect(consoleMock).toHaveBeenNthCalledWith(1, '9');
+    expect(consoleMock).toHaveBeenNthCalledWith(2, '8');
+    expect(consoleMock).toHaveBeenNthCalledWith(3, '7');
+    expect(consoleMock).toHaveBeenNthCalledWith(4, '6');
+    expect(consoleMock).toHaveBeenNthCalledWith(5, '5');
+  });
 });
