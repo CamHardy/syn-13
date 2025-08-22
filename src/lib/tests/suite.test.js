@@ -45,6 +45,21 @@ describe('Syn-13 Interpreter', () => {
     expect(consoleMock).toHaveBeenNthCalledWith(2, '42');
   });
 
+  it('supports right-associative assignment', () => {
+    System.run(`
+      var a = "a";
+      var b = "b";
+      var c = "c";
+      a = b = c;
+      print a;
+      print b;
+      print c;
+    `);
+    expect(consoleMock).toHaveBeenNthCalledWith(1, 'c');
+    expect(consoleMock).toHaveBeenNthCalledWith(2, 'c');
+    expect(consoleMock).toHaveBeenNthCalledWith(3, 'c');
+  });
+
   it('runs if statements', () => {
     System.run('if (true) print 123;');
     expect(consoleMock).toHaveBeenLastCalledWith('123');
