@@ -69,4 +69,32 @@ describe('Syn-13 Interpreter', () => {
     expect(consoleMock).toHaveBeenNthCalledWith(4, '6');
     expect(consoleMock).toHaveBeenNthCalledWith(5, '5');
   });
+
+  it('supports functions', () => {
+    System.run(`
+      fun add(a, b) {
+        return a + b;
+      }
+      print add(2, 5);
+    `);
+    expect(consoleMock).toHaveBeenLastCalledWith('7');
+  });
+
+  it('supports closures', () => {
+    System.run(`
+      fun makeCounter() {
+        var i = 0;
+        fun count() {
+          i = i + 1;
+          print i;
+        }
+        return count;
+      }
+      var counter = makeCounter();
+      counter();
+      counter();
+      counter();
+    `);
+    expect(consoleMock).toHaveBeenLastCalledWith('3');
+  });
 });
