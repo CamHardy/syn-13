@@ -14,6 +14,8 @@ export class System {
 
 	/** @param { string } source */
 	static run(source) {
+    this.hadError = false;
+    this.hadRuntimeError = false;
 		const scanner = new Scanner(source);
 		const tokens = scanner.scanTokens();
 		const parser = new Parser(tokens);
@@ -48,7 +50,7 @@ export class System {
 
 	/** @param { RuntimeError } error */
 	static runtimeError(error) {
-		console.error(`${error.message}\n[line ${error.token.line}]`);
+		console.log(`${error.message}\n[line ${error.token.line}]`);
 		this.hadRuntimeError = true;
 	}
 
@@ -58,7 +60,7 @@ export class System {
 	 * @param { string } message 
 	 */
 	static #report(line, where, message) {
-		console.error(`[line ${line}] Error${where}: ${message}`);
+		console.log(`[line ${line}] Error${where}: ${message}`);
 		this.hadError = true;
 	}
 }
@@ -75,6 +77,11 @@ export class System {
 // 	print after - before;
 // `);
 
-	//TODO: exit process gracefully
-if (System.hadError) console.error('I had an error :(');
-if (System.hadRuntimeError) console.error('I had a runtime error :(');
+// System.run(`
+// 	var a = "a";
+// 	(a) = "value";
+// `);
+
+//TODO: exit process gracefully
+// if (System.hadError) console.log('I had an error :(');
+// if (System.hadRuntimeError) console.log('I had a runtime error :(');
