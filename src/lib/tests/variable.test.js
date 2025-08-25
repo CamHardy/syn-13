@@ -114,4 +114,79 @@ describe('Variables', () => {
     `);
     expect(consoleMock).lastCalledWith('nil');
   });
+
+  it('redefine global', () => {
+    System.run(`
+      var a = "1";
+      var a = "2";
+      print a;
+    `);
+    expect(consoleMock).lastCalledWith('2');
+  });
+
+  it('scope reuse in different blocks', () => {
+    System.run(`
+      {
+        var a = "first";
+        print a;
+      }
+      {
+        var a = "second";
+        print a;
+      }
+    `);
+    expect(consoleMock).nthCalledWith(1, 'first');
+    expect(consoleMock).nthCalledWith(2, 'second');
+  });
+
+  it('shadow and local', () => {
+    System.run(`
+      {
+        var a = "outer";
+        {
+          print a;
+          var a = "inner";
+          print a;
+        }
+      }
+    `);
+    expect(consoleMock).nthCalledWith(1, 'outer');
+    expect(consoleMock).nthCalledWith(2, 'inner');
+  });
+
+  it('shadow global', () => {
+    System.run(`
+      var a = "global";
+      {
+        var a = "shadow";
+        print a;
+      }
+      print a;
+    `);
+    expect(consoleMock).nthCalledWith(1, 'shadow');
+    expect(consoleMock).nthCalledWith(2, 'global');
+  });
+
+  it('shadow local', () => {
+    System.run(`
+      {
+        var a = "local";
+        {
+          var a = "shadow";
+          print a;
+        }
+        print a;
+      }
+    `);
+    expect(consoleMock).nthCalledWith(1, 'shadow');
+    expect(consoleMock).nthCalledWith(2, 'local');
+  });
+
+  it('undefined global', () => {
+    expect(() => System.run('print notDefined;')).toThrowError("Undefined variable 'notDefined'.");
+  });
+
+  it('undefined local', () => {
+    expect(() => System.run('{ print notDefined; }')).toThrowError("Undefined variable 'notDefined'.");
+  });
 });
