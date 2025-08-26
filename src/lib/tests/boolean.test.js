@@ -8,16 +8,45 @@ describe('Booleans', () => {
     consoleMock.mockClear();
   });
 
-  it('handles boolean expressions', () => {
-    System.run('print true;');
+  it('equality', () => {
+    System.run('print true == true;');
     expect(consoleMock).lastCalledWith('true');
-    System.run('print false;');
+    System.run('print true == false;');
     expect(consoleMock).lastCalledWith('false');
-    System.run('print !true;');
+    System.run('print false == true;');
     expect(consoleMock).lastCalledWith('false');
-    System.run('print 3 < 5;');
+    System.run('print false == false;');
     expect(consoleMock).lastCalledWith('true');
-    System.run('print 3 == 3;');
+
+    System.run('print true == 1;');
+    expect(consoleMock).lastCalledWith('false');
+    System.run('print false == 0;');
+    expect(consoleMock).lastCalledWith('false');
+    System.run('print true == "true";');
+    expect(consoleMock).lastCalledWith('false');
+    System.run('print false == "false";');
+    expect(consoleMock).lastCalledWith('false');
+    System.run('print true == "";');
+    expect(consoleMock).lastCalledWith('false');
+
+    System.run('print true != true;');
+    expect(consoleMock).lastCalledWith('false');
+    System.run('print true != false;');
+    expect(consoleMock).lastCalledWith('true');
+    System.run('print false != true;');
+    expect(consoleMock).lastCalledWith('true');
+    System.run('print false != false;');
+    expect(consoleMock).lastCalledWith('false');
+
+    System.run('print true != 1;');
+    expect(consoleMock).lastCalledWith('true');
+    System.run('print false != 0;');
+    expect(consoleMock).lastCalledWith('true');
+    System.run('print true != "true";');
+    expect(consoleMock).lastCalledWith('true');
+    System.run('print false != "false";');
+    expect(consoleMock).lastCalledWith('true');
+    System.run('print false != "";');
     expect(consoleMock).lastCalledWith('true');
   });
 });

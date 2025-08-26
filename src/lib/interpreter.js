@@ -101,7 +101,7 @@ export class Interpreter {
 				this.#checkNumberOperands(node.operator, left, right);
 				return Number(left) * Number(right);
 			case 'BANG_EQUAL':
-				return this.#isEqual(left, right);
+				return !this.#isEqual(left, right);
 			case 'EQUAL_EQUAL':
 				return this.#isEqual(left, right);
 		}
@@ -381,7 +381,7 @@ export class Interpreter {
 	 * @param { any } visitor
 	 */
 	#visit(element, visitor) {
-		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element.type}`);
+		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element?.type}`);
 
 		return visitor[element.type](element);
 	}
