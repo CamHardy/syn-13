@@ -57,5 +57,5 @@ describe('Booleans', () => {
     expect(consoleMock).lastCalledWith('true');
     System.run('print !!true;');
     expect(consoleMock).lastCalledWith('true');
-  })
+  });
 });
