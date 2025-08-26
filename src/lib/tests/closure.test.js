@@ -128,4 +128,103 @@ describe('Closures', () => {
     `);
     expect(consoleMock).lastCalledWith('param');
   });
+
+  it('closed closure in function', () => {
+    System.run(`
+      var f;
+
+      {
+        var local = "local";
+        fun f_() {
+          print local;
+        }
+        f = f_;
+      }
+
+      f();
+    `);
+    expect(consoleMock).lastCalledWith('local');
+  });
+
+  it('nested closure', () => {
+    System.run(`
+      var f;
+
+      fun f1() {
+        var a = "a";
+        fun f2() {
+          var b = "b";
+          fun f3() {
+            var c = "c";
+            fun f4() {
+              print a;
+              print b;
+              print c;
+            }
+            f = f4;
+          }
+          f3();
+        }
+        f2();
+      }
+      f1();
+
+      f();
+    `);
+    expect(consoleMock).nthCalledWith(1, 'a');
+    expect(consoleMock).nthCalledWith(2, 'b');
+    expect(consoleMock).nthCalledWith(3, 'c');
+  });
+
+  it('open closure in function', () => {
+    System.run(`
+      {
+        var local = "local";
+        fun f() {
+          print local;
+        }
+        f();
+      }
+    `);
+    expect(consoleMock).lastCalledWith('local');
+  });
+
+  it('reference closure multiple times', () => {
+    System.run(`
+      var f;
+
+      {
+        var a = "a";
+        fun f_() {
+          print a;
+          print a;
+        }
+        f = f_;
+      }
+
+      f();
+    `);
+    expect(consoleMock).nthCalledWith(1, 'a');
+    expect(consoleMock).nthCalledWith(2, 'a');
+  });
+
+  it('reuse closure slot', () => {
+    System.run(`
+      {
+        var f;
+
+        {
+          var a = "a";
+          fun f_() { print a; }
+          f = f_;
+        }
+
+        {
+          var b = "b";
+          f();
+        }
+      }
+    `);
+    expect(consoleMock).lastCalledWith('a');
+  });
 });
