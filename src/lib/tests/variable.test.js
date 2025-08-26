@@ -8,13 +8,6 @@ describe('Variables', () => {
     consoleMock.mockClear();
   });
 
-  it('supports variable declarations', () => {
-    System.run('var x = 2; var y = 3; print x + y;');
-    expect(consoleMock).lastCalledWith('5');
-    System.run('var msg = "hi"; print msg;');
-    expect(consoleMock).lastCalledWith('hi');
-  });
-
   it('collide with parameter', () => {
     System.run(`
       fun foo(a) {
@@ -188,5 +181,61 @@ describe('Variables', () => {
 
   it('undefined local', () => {
     expect(() => System.run('{ print notDefined; }')).toThrowError("Undefined variable 'notDefined'.");
+  });
+
+  it('uninitialized', () => {
+    System.run(`
+      var a;
+      print a;
+    `);
+    expect(consoleMock).lastCalledWith('nil');
+  });
+
+  it('unreached undefined', () => {
+    System.run(`
+      if (false) {
+        print notDefined;
+      }
+
+      print "ok";
+    `);
+    expect(consoleMock).lastCalledWith('ok');
+  });
+
+  it('use false as var', () => {
+    System.run('var false = "value";');
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'false': Expected variable name."));
+  });
+
+  it('use global in initializer', () => {
+    System.run(`
+      var a = "value";
+      var a = a;
+      print a;
+    `);
+    expect(consoleMock).lastCalledWith('value');
+  });
+
+  it('use local in initializer', () => {
+    expect(() => {
+      System.run(`
+        {
+          var a = "outer";
+          {
+            var a = a;
+          }
+        }
+      `);
+    }).toThrowError("Error at 'a': Can't read local variable in its own initializer.");
+  });
+
+  it('use nil as var', () => {
+    System.run('var nil = "value";');
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'nil': Expected variable name."));
+  });
+
+  it('use this as var', () => {
+    System.run('var this = "value";');
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'this': Expected variable name."));
   });
 });

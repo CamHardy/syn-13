@@ -77,11 +77,6 @@ export class System {
 // 	print after - before;
 // `);
 
-// System.run(`
-// 	var a = "a";
-// 	(a) = "value";
-// `);
-
 //TODO: exit process gracefully
-// if (System.hadError) console.log('I had an error :(');
-// if (System.hadRuntimeError) console.log('I had a runtime error :(');
+if (System.hadError) console.log('I had an error :(');
+if (System.hadRuntimeError) console.log('I had a runtime error :(');

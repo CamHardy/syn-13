@@ -240,7 +240,7 @@ export class Resolver {
 		const length = this.#scopes.length;
 		
 		if (length !== 0 && this.#scopes[length - 1].get(node.name.lexeme) === false) {
-			throw new Error("Can't read local variable in its own initializer.");
+			throw new Error(`Error at '${node.name.lexeme}': Can't read local variable in its own initializer.`);
 		}
 
 		this.#resolveLocal(node, node.name);

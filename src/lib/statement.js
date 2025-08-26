@@ -1,7 +1,7 @@
 /** @import { Variable, ExpressionType } from './expression.js' */
 /** @import { Token } from './token.js' */
 
-/** @typedef { Block | Class | Expression | Func | If | Print | Return | Var | While } StatementType */
+/** @typedef { Block | Class | Expression | Func | If | Print | Return | Var | While | null } StatementType */
 
 /**
  * @typedef { Object } Block

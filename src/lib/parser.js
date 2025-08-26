@@ -7,6 +7,13 @@ import { Statement } from './statement.js';
 /** @import { Variable, ExpressionType } from './expression.js' */
 /** @import { StatementType } from './statement.js' */
 
+class ParseError extends Error {
+	constructor() {
+		super();
+		this.name = 'ParseError';
+	}
+}
+
 export class Parser {
 	#tokens;
 	#current = 0;
@@ -41,7 +48,11 @@ export class Parser {
 			if (this.#match('VAR')) return this.#varDeclaration();
 			return this.#statement();
 		} catch (error) {
-			this.#synchronize();
+			if (error instanceof ParseError) {
+				this.#synchronize();
+				return null;
+			}
+			
 			throw error;
 		}
 	}
@@ -201,7 +212,7 @@ export class Parser {
 		return Statement.Expression(expression);
 	}
 
-	/** @returns { StatementType[] } */
+	/** @returns { (StatementType | null)[]} */
 	#block() {
 		const statements = [];
 
@@ -442,7 +453,7 @@ export class Parser {
 	 */
 	#error(token, message) {
 		System.error(token, message);
-		return new Error();
+		return new ParseError();
 	}
 
 	#synchronize() {

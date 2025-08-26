@@ -108,10 +108,6 @@ describe('Assignment', () => {
 
   it('undefined', () => {
     
-    expect(() => {
-      System.run(`
-        unknown = "what";
-      `)
-    }).toThrowError("Undefined variable 'unknown'");
+    expect(() => System.run('unknown = "what";')).toThrowError("Undefined variable 'unknown'");
   });
 });
