@@ -49,4 +49,13 @@ describe('Booleans', () => {
     System.run('print false != "";');
     expect(consoleMock).lastCalledWith('true');
   });
+
+  it('not', () => {
+    System.run('print !true;');
+    expect(consoleMock).lastCalledWith('false');
+    System.run('print !false;');
+    expect(consoleMock).lastCalledWith('true');
+    System.run('print !!true;');
+    expect(consoleMock).lastCalledWith('true');
+  })
 });
