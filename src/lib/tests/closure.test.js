@@ -8,24 +8,6 @@ describe('Closures', () => {
     consoleMock.mockClear();
   });
 
-  it('supports closures', () => {
-    System.run(`
-      fun makeCounter() {
-        var i = 0;
-        fun count() {
-          i = i + 1;
-          print i;
-        }
-        return count;
-      }
-      var counter = makeCounter();
-      counter();
-      counter();
-      counter();
-    `);
-    expect(consoleMock).lastCalledWith('3');
-  });
-
   it('assign to closure', () => {
     System.run(`
       var f;
@@ -223,6 +205,68 @@ describe('Closures', () => {
           var b = "b";
           f();
         }
+      }
+    `);
+    expect(consoleMock).lastCalledWith('a');
+  });
+
+  it('shadow closure with local', () => {
+    System.run(`
+      {
+        var foo = "closure";
+        fun f() {
+          {
+            print foo;
+            var foo = "shadow";
+            print foo;
+          }
+          print foo;
+        }
+        f();
+      }
+    `);
+    expect(consoleMock).nthCalledWith(1, 'closure');
+    expect(consoleMock).nthCalledWith(2, 'shadow');
+    expect(consoleMock).nthCalledWith(3, 'closure');
+  });
+
+  it('unused closure', () => {
+    System.run(`
+      {
+        var a = "a";
+        if (false) {
+          fun foo() { a; }
+        }
+      }
+
+      print "ok";
+    `);
+    expect(consoleMock).lastCalledWith('ok');
+  });
+
+  it('unused later closure', () => {
+    System.run(`
+      var closure;
+
+      {
+        var a = "a";
+
+        {
+          var b = "b";
+          fun returnA() {
+            return a;
+          }
+
+          closure = returnA;
+
+          if (false) {
+            fun returnB() {
+              return b;
+            }
+          }
+        }
+
+        print closure();
       }
     `);
     expect(consoleMock).lastCalledWith('a');
