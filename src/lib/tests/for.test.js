@@ -118,4 +118,79 @@ describe('For Loops', () => {
     expect(consoleMock).nthCalledWith(3, 'after');
     expect(consoleMock).nthCalledWith(4, '0');
   });
+
+  it('statement condition', () => {
+    System.run(`
+      for (var a = 1; {}; a = a + 1) {}
+    `);
+    expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at '{': Expected expression."));
+    expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at ')': Expected ; after expression."));
+  });
+
+  it('statement increment', () => {
+    System.run(`
+      for (var a = 1; a < 2; {}) {}
+    `);
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '{': Expected expression."));
+  });
+
+  it('statement initializer', () => {
+    System.run('for ({}; a < 2; a = a + 1) {}');
+    expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at '{': Expected expression."));
+    expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at ')': Expected ; after expression."));
+  });
+
+  it('syntax', () => {
+    System.run(`
+      for (var c = 0; c < 3;) print c = c + 1;
+
+      for (var a = 0; a < 3; a = a + 1) {
+        print a;
+      }
+
+      fun foo() {
+        for (;;) return "done";
+      }
+      print foo();
+
+      var i = 0;
+      for (; i < 2; i = i + 1) print i;
+
+      fun bar() {
+        for (var i = 0;; i = i + 1) {
+          print i;
+          if (i >= 2) return;
+        }
+      }
+      bar();
+
+      for (var i = 0; i < 2;) {
+        print i;
+        i = i + 1;
+      }
+
+      for (; false;) if (true) 1; else 2;
+      for (; false;) while (true) 1;
+      for (; false;) for (;;) 1;
+    `);
+    expect(consoleMock).nthCalledWith(1, '1');
+    expect(consoleMock).nthCalledWith(2, '2');
+    expect(consoleMock).nthCalledWith(3, '3');
+    expect(consoleMock).nthCalledWith(4, '0');
+    expect(consoleMock).nthCalledWith(5, '1');
+    expect(consoleMock).nthCalledWith(6, '2');
+    expect(consoleMock).nthCalledWith(7, 'done');
+    expect(consoleMock).nthCalledWith(8, '0');
+    expect(consoleMock).nthCalledWith(9, '1');
+    expect(consoleMock).nthCalledWith(10, '0');
+    expect(consoleMock).nthCalledWith(11, '1');
+    expect(consoleMock).nthCalledWith(12, '2');
+    expect(consoleMock).nthCalledWith(13, '0');
+    expect(consoleMock).nthCalledWith(14, '1');
+  });
+
+  it('var in body', () => {
+    System.run('for (;;) var foo;');
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
+  });
 });
