@@ -8,13 +8,6 @@ describe('If Statements', () => {
     consoleMock.mockClear();
   });
 
-  it('runs if statements', () => {
-    System.run('if (true) print 123;');
-    expect(consoleMock).lastCalledWith('123');
-    System.run('if (false) print 1; else print 2;');
-    expect(consoleMock).lastCalledWith('2');
-  });
-
   it('class in else', () => {
     System.run('if (true) "ok"; else class Foo {}');
     expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
@@ -66,5 +59,30 @@ describe('If Statements', () => {
     expect(consoleMock).nthCalledWith(1, 'good');
     expect(consoleMock).nthCalledWith(2, 'block');
     expect(consoleMock).nthCalledWith(3, 'true');
+  });
+
+  it('truth', () => {
+    System.run(`
+      if (false) print "bad"; else print "false";
+      if (nil) print "bad"; else print "nil";
+      if (true) print true;
+      if (0) print 0;
+      if ("") print "empty";
+    `);
+    expect(consoleMock).nthCalledWith(1, 'false');
+    expect(consoleMock).nthCalledWith(2, 'nil');
+    expect(consoleMock).nthCalledWith(3, 'true');
+    expect(consoleMock).nthCalledWith(4, '0');
+    expect(consoleMock).nthCalledWith(5, 'empty');
+  });
+
+  it('var in else', () => {
+    System.run('if (true) "ok"; else var foo;');
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
+  });
+
+  it('var in then', () => {
+    System.run('if (true) var foo;');
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
   });
 });
