@@ -107,4 +107,102 @@ describe('Operators', () => {
   it('divide number by non-number', () => {
     expect(() => System.run('print 1 / "1";')).toThrowError('Operands must be numbers.');
   });
+  
+  it('equals', () => {
+    System.run(`
+      print nil == nil;
+      print true == true;
+      print true == false;
+      print 1 == 1;
+      print 1 == 2;
+      print "str" == "str";
+      print "str" == "ing";
+      print nil == false;
+      print false == 0;
+      print 0 == "0";
+    `);
+    expect(consoleMock).nthCalledWith(1, 'true');
+    expect(consoleMock).nthCalledWith(2, 'true');
+    expect(consoleMock).nthCalledWith(3, 'false');
+    expect(consoleMock).nthCalledWith(4, 'true');
+    expect(consoleMock).nthCalledWith(5, 'false');
+    expect(consoleMock).nthCalledWith(6, 'true');
+    expect(consoleMock).nthCalledWith(7, 'false');
+    expect(consoleMock).nthCalledWith(8, 'false');
+    expect(consoleMock).nthCalledWith(9, 'false');
+    expect(consoleMock).nthCalledWith(10, 'false');
+  });
+
+  it('equals class', () => {
+    System.run(`
+      class Foo {}
+      class Bar {}
+
+      print Foo == Foo;
+      print Foo == Bar;
+      print Bar == Foo;
+      print Bar == Bar;
+
+      print Foo == "Foo";
+      print Foo == nil;
+      print Foo == 123;
+      print Foo == true;
+    `);
+    expect(consoleMock).nthCalledWith(1, 'true');
+    expect(consoleMock).nthCalledWith(2, 'false');
+    expect(consoleMock).nthCalledWith(3, 'false');
+    expect(consoleMock).nthCalledWith(4, 'true');
+    expect(consoleMock).nthCalledWith(5, 'false');
+    expect(consoleMock).nthCalledWith(6, 'false');
+    expect(consoleMock).nthCalledWith(7, 'false');
+    expect(consoleMock).nthCalledWith(8, 'false');
+  });
+
+  it('equals method', () => {
+    System.run(`
+      class Foo {
+        method() {}
+      }
+
+      var foo = Foo();
+      var fooMethod = foo.method;
+
+      print fooMethod == fooMethod;
+      print foo.method == foo.method;
+    `);
+    expect(consoleMock).nthCalledWith(1, 'true');
+    expect(consoleMock).nthCalledWith(2, 'false');
+  });
+
+  it('greater non-number than number', () => {
+    expect(() => System.run('print "1" > 1;')).toThrowError('Operands must be numbers.');
+  });
+
+  it('greater number than non-number', () => {
+    expect(() => System.run('print 1 > "1";')).toThrowError('Operands must be numbers.');
+  });
+
+  it('greater or equal non-number than number', () => {
+    expect(() => System.run('print "1" >= 1;')).toThrowError('Operands must be numbers.');
+  });
+
+  it('greater or equal number than non-number', () => {
+    expect(() => System.run('print 1 >= "1";')).toThrowError('Operands must be numbers.');
+  });
+
+  it('less non-number than number', () => {
+    expect(() => System.run('print "1" < 1;')).toThrowError('Operands must be numbers.');
+  });
+
+  it('less number than non-number', () => {
+    expect(() => System.run('print 1 < "1";')).toThrowError('Operands must be numbers.');
+  });
+
+  it('less or equal non-number than number', () => {
+    expect(() => System.run('print "1" <= 1;')).toThrowError('Operands must be numbers.');
+  });
+
+  it('less or equal number than non-number', () => {
+    expect(() => System.run('print 1 <= "1";')).toThrowError('Operands must be numbers.');
+  });
 });
