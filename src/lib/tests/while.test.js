@@ -8,15 +8,6 @@ describe('While Loops', () => {
     consoleMock.mockClear();
   });
 
-  it('runs while loops', () => {
-    System.run('var i = 0; while (i < 5) { print i; i = i + 1; }');
-    expect(consoleMock).nthCalledWith(1, '0');
-    expect(consoleMock).nthCalledWith(2, '1');
-    expect(consoleMock).nthCalledWith(3, '2');
-    expect(consoleMock).nthCalledWith(4, '3');
-    expect(consoleMock).nthCalledWith(5, '4');
-  });
-
   it('class in body', () => {
     System.run('while (true) class Foo {}');
     expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
@@ -69,8 +60,46 @@ describe('While Loops', () => {
     `);
     expect(consoleMock).lastCalledWith('i');
   });
-  // commit
-  it('return inside', () => {});
-  it('syntax', () => {});
-  it('var in body', () => {});
+  
+  it('return inside', () => {
+    System.run(`
+      fun f() {
+        while (true) {
+          var i = "i";
+          return i;
+        }
+      }
+
+      print f();
+    `);
+    expect(consoleMock).lastCalledWith('i');
+  });
+
+  it('syntax', () => {
+    System.run(`
+      var c = 0;
+      while (c < 3) print c = c + 1;
+
+      var a = 0;
+      while (a < 3) {
+        print a;
+        a = a + 1;
+      }
+
+      while (false) if (true) 1; else 2;
+      while (false) while (true) 1;
+      while (false) for (;;) 1;
+    `);
+    expect(consoleMock).nthCalledWith(1, '1');
+    expect(consoleMock).nthCalledWith(2, '2');
+    expect(consoleMock).nthCalledWith(3, '3');
+    expect(consoleMock).nthCalledWith(4, '0');
+    expect(consoleMock).nthCalledWith(5, '1');
+    expect(consoleMock).nthCalledWith(6, '2');
+  });
+
+  it('var in body', () => {
+    System.run('while (true) var foo;');
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
+  });
 });
