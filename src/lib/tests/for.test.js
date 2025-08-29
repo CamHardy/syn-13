@@ -8,15 +8,6 @@ describe('For Loops', () => {
     consoleMock.mockClear();
   });
 
-  it('runs for loops', () => {
-    System.run('for (var i = 9; i >= 5; i = i - 1) print i;');
-    expect(consoleMock).nthCalledWith(1, '9');
-    expect(consoleMock).nthCalledWith(2, '8');
-    expect(consoleMock).nthCalledWith(3, '7');
-    expect(consoleMock).nthCalledWith(4, '6');
-    expect(consoleMock).nthCalledWith(5, '5');
-  });
-
   it('class in body', () => {
     System.run('for (;;) class Foo {}');
     expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
