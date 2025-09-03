@@ -258,4 +258,131 @@ describe('Super', () => {
 		expect(consoleMock).nthCalledWith(1, "Base.method()");
 		expect(consoleMock).nthCalledWith(2, "Base.method()");
 	});
+
+	it('super at top level', () => {
+		System.run(`
+			super.foo("bar");
+			super.foo;
+		`);
+		expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
+		expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
+	});
+
+	it('super in closure in inherited method', () => {
+		System.run(`
+			class A {
+				say() {
+					print "A";
+				}
+			}
+
+			class B < A {
+				getClosure() {
+					fun closure() {
+						super.say();
+					}
+					return closure;
+				}
+
+				say() {
+					print "B";
+				}
+			}
+
+			class C < B {
+				say() {
+					print "C";
+				}
+			}
+
+			C().getClosure()();
+		`);
+		expect(consoleMock).lastCalledWith('A');
+	});
+
+	it('super in inherited method', () => {
+		System.run(`
+			class A {
+				say() {
+					print "A";
+				}
+			}
+
+			class B < A {
+				test() {
+					super.say();
+				}
+
+				say() {
+					print "B";
+				}
+			}
+
+			class C < B {
+				say() {
+					print "C";
+				}
+			}
+
+			C().test();
+		`);
+		expect(consoleMock).lastCalledWith('A');
+	});
+
+	it('super in top level function', () => {
+		System.run(`
+			super.bar();
+			fun foo() {}
+		`);
+		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
+	});
+
+	it('super without dot', () => {
+		System.run(`
+			class A {};
+
+			class B < A {
+				method() {
+					super;
+				}
+			}
+		`);
+		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at ';': Expected '.' after 'super'."));
+	});
+
+	it('super without name', () => {
+		System.run(`
+			class A {};
+
+			class B < A {
+				method() {
+					super.;
+				}
+			}
+		`);
+		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at ';': Expected superclass method name."));
+	});
+
+	it('this in superclass method', () => {
+		System.run(`
+			class Base {
+				init(a) {
+					this.a = a;
+				}
+			}
+
+			class Derived < Base {
+				init(a, b) {
+					super.init(a);
+					this.b = b;
+				}
+			}
+
+			var derived = Derived("a", "b");
+			print derived.a;
+			print derived.b;
+		`);
+		expect(consoleMock).nthCalledWith(1, "a");
+		expect(consoleMock).nthCalledWith(2, "b");
+	});
 });
