@@ -176,4 +176,86 @@ describe('Super', () => {
 			Derived().foo();
 		`)).toThrowError('Expected 2 arguments but got 1.');
 	});
+
+	it('no superclass bind', () => {
+		System.run(`
+			class Base {
+				foo() {
+					super.doesNotExist;
+				}
+			}
+
+			Base().foo();
+		`);
+		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' in a class with no superclass."));
+	});
+
+	it('no superclass call', () => {
+		System.run(`
+			class Base {
+				foo() {
+					super.doesNotExist(1);
+				}
+			}
+
+			Base().foo();
+		`);
+	});
+
+	it('no superclass method', () => {
+		expect(() => System.run(`
+			class Base {}
+
+			class Derived < Base {
+				foo() {
+					super.doesNotExist(1);
+				}
+			}
+
+			Derived().foo();
+		`)).toThrowError("Undefined property 'doesNotExist'.");
+	});
+
+	it('parenthesized', () => {
+		System.run(`
+			class A {
+				method() {}
+			}
+
+			class B < A {
+				method() {
+					(super).method();
+				}
+			}
+		`);
+	});
+
+	it('reassign superclass', () => {
+		System.run(`
+			class Base {
+				method() {
+					print "Base.method()";
+				}
+			}
+
+			class Derived < Base {
+				method() {
+					super.method();
+				}
+			}
+
+			class OtherBase {
+				method() {
+					print "OtherBase.method()";
+				}
+			}
+
+			var derived = Derived();
+			derived.method();
+			Base = OtherBase;
+			derived.method();
+		`);
+		expect(consoleMock).nthCalledWith(1, "Base.method()");
+		expect(consoleMock).nthCalledWith(2, "Base.method()");
+	});
 });
