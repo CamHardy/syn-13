@@ -31,6 +31,12 @@ export class System {
 		this.#interpreter.interpret(/** @type { StatementType[] } */ (statements));
 	}
 
+	/** @param { string } source */
+	static scan(source) {
+		const scanner = new Scanner(source);
+		return scanner.scanTokens();
+	}
+
 	/**
 	 * @param { Token | number } token 
 	 * @param { string } message 
