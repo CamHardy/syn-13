@@ -37,6 +37,6 @@ export class AstPrinter {
 
 	/** @param { ExpressionType } expression */
 	static print(expression) {
-		return this.#visit(expression, AstPrinter);
+		console.log(this.#visit(expression, AstPrinter));
 	}
 }

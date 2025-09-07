@@ -37,6 +37,14 @@ export class System {
 		return scanner.scanTokens();
 	}
 
+	/** @param { string } source */
+	static parse(source) {
+		const scanner = new Scanner(source);
+		const tokens = scanner.scanTokens();
+		const parser = new Parser(tokens);
+		return parser.parse();
+	}
+
 	/**
 	 * @param { Token | number } token 
 	 * @param { string } message 
