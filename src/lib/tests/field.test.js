@@ -97,6 +97,43 @@ describe('Fields', () => {
 		expect(() => System.run('"str".foo;')).toThrowError('Only instances have properties.');
 	});
 	
+  it('set evaluation order', () => {
+		expect(() => System.run(`
+			undefined1.bar
+				= undefined2;
+		`)).toThrowError("Undefined variable 'undefined1'.");
+	});
+
+  it('set on bool', () => {
+		expect(() => System.run('true.foo = "value";')).toThrowError('Only instances have fields.');
+	});
+
+  it('set on class', () => {
+		expect(() => System.run(`
+			class Foo {}
+			Foo.bar = "value";
+		`)).toThrowError('Only instances have fields.');
+	});
+
+  it('set on function', () => {
+		expect(() => System.run(`
+			fun foo() {}
+			foo.bar = "value";
+		`)).toThrowError('Only instances have fields.');
+	});
+
+  it('set on nil', () => {
+		expect(() => System.run('nil.foo = "value";')).toThrowError('Only instances have fields.');
+	});
+
+  it('set on num', () => {
+		expect(() => System.run('123.foo = "value";')).toThrowError('Only instances have fields.');
+	});
+
+  it('set on string', () => {
+		expect(() => System.run('"str".foo = "value";')).toThrowError('Only instances have fields.');
+	});
+
   it('undefined', () => {
 		expect(() => System.run(`
 			class Foo {}
