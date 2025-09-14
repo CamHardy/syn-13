@@ -356,7 +356,7 @@ export class Parser {
 		if (!this.#check('RIGHT_PAREN')) {
 			do {
 				if (args.length >= 255) {
-					this.#error(this.#peek(), "Can't have more than 255 arguments.");
+					this.#error(this.#peek(), "Cannot have more than 255 arguments.");
 				}
 				args.push(this.#expression());
 			} while (this.#match('COMMA'));

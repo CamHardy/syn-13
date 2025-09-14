@@ -203,7 +203,7 @@ describe('Functions', () => {
         );
       }
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'a': Can't have more than 255 arguments."));
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'a': Cannot have more than 255 arguments."));
   });
 
   it('too many parameters', () => {
