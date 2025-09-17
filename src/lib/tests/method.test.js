@@ -115,22 +115,22 @@ describe('Methods', () => {
 			{
 				var a = 1;
 				true.method(
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a,
-					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 16
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 32
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 48
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 64
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 80
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 96
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 112
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 128
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 144
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 160
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 176
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 192
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 208
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 224
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, // 240
+					a, a, a, a, a, a, a, a, a, a, a, a, a, a, a, a  // 256
 				);
 			}
 		`);

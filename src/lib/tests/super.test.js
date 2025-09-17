@@ -133,7 +133,7 @@ describe('Super', () => {
 
 			Derived().foo();
 		`)).toThrowError("Expected 2 arguments but got 4.");
-		expect(consoleMock).nthCalledWith(1, "Derived.foo()");
+		expect(consoleMock).lastCalledWith("Derived.foo()");
 	});
 
 	it('indirectly inherited', () => {
@@ -200,6 +200,7 @@ describe('Super', () => {
 
 			Base().foo();
 		`);
+		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' in a class with no superclass."));
 	});
 
 	it('no superclass method', () => {
@@ -228,6 +229,7 @@ describe('Super', () => {
 				}
 			}
 		`);
+		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at ')': Expected '.' after 'super'."));
 	});
 
 	it('reassign superclass', () => {
@@ -347,7 +349,8 @@ describe('Super', () => {
 				}
 			}
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at ';': Expected '.' after 'super'."));
+		expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at ';': Expected expression."));
+		expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at ';': Expected '.' after 'super'."));
 	});
 
 	it('super without name', () => {
@@ -360,7 +363,8 @@ describe('Super', () => {
 				}
 			}
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at ';': Expected superclass method name."));
+		expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at ';': Expected expression."));
+		expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at ';': Expected superclass method name."));
 	});
 
 	it('this in superclass method', () => {

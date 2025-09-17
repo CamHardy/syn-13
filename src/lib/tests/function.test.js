@@ -10,7 +10,7 @@ describe('Functions', () => {
 
   it('body must be block', () => {
     System.run('fun f() 123;');
-    expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at '123': Expected '{' before function body."));
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '123': Expected '{' before function body."));
   });
 
   it('empty body', () => {
@@ -74,7 +74,7 @@ describe('Functions', () => {
 
   it('missing comma in parameters', () => {
     System.run('fun foo(a, b c, d, e, f) {}');
-    expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at 'c': Expected ')' after function parameters."));
+    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'c': Expected ')' after function parameters."));
   });
 
   it('mutual recursion', () => {
