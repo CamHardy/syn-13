@@ -1,9 +1,5 @@
-/**
- * @typedef { 'NONE' | 'CLASS' | 'SUBCLASS' } ClassType
- */
-
-/** @enum { ClassType } */
-export const Classes = Object.freeze({
+/** @enum { 'NONE' | 'CLASS' | 'SUBCLASS' } */
+export const ClassType = Object.freeze({
 	'NONE': 'NONE',
 	'CLASS': 'CLASS',
 	'SUBCLASS': 'SUBCLASS'

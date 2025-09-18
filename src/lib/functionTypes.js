@@ -1,9 +1,5 @@
-/**
- * @typedef { 'NONE' | 'FUNCTION' | 'INITIALIZER' | 'METHOD' } FunctionType
- */
-
-/** @enum { FunctionType } */
-export const Function = Object.freeze({
+/** @enum { 'NONE' | 'FUNCTION' | 'INITIALIZER' | 'METHOD' } */
+export const FunctionType = Object.freeze({
 	'NONE': 'NONE',
 	'FUNCTION': 'FUNCTION',
 	'INITIALIZER': 'INITIALIZER',

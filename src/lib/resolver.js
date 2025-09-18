@@ -261,7 +261,7 @@ export class Resolver {
 	 * @param { any } [visitor]
 	 */
 	#resolve(element, visitor = this) {
-		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element.type}`);
+		if (!element || !visitor[element.type]) throw new Error(`No visitor for element type: ${element?.type}`);
 
 		return visitor[element.type](element);
 	}
