@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import { System } from '../system.js';
+import { System } from '../tree-walker/system.js';
 
 describe('Constructors', () => {
   const consoleMock = vi.spyOn(console, 'log');

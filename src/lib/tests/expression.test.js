@@ -1,7 +1,7 @@
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import { System } from '../system.js';
-import { AstPrinter } from '../astPrinter.js';
-/** @import { Expression } from '../statement.js' */
+import { System } from '../tree-walker/system.js';
+import { AstPrinter } from '../tree-walker/astPrinter.js';
+/** @import { Expression } from '../tree-walker/statement.js' */
 
 describe('Expressions', () => {
   const consoleMock = vi.spyOn(console, 'log');
