@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('Strings', () => {
   const consoleMock = vi.spyOn(console, 'log');
+	const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
 	it('error after multiline', () => {
@@ -42,6 +44,6 @@ describe('Strings', () => {
 
 	it('unterminated', () => {
 		System.run('"this string has no close quote');
-		expect(consoleMock).lastCalledWith(expect.stringContaining('Error: Unterminated string.'));
+		expect(errorMock).lastCalledWith(expect.stringContaining('Error: Unterminated string.'));
 	});
 });

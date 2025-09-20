@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('Variables', () => {
   const consoleMock = vi.spyOn(console, 'log');
+  const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('collide with parameter', () => {
@@ -14,7 +16,7 @@ describe('Variables', () => {
         var a;
       }
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'a': Already a variable with this name in this scope."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'a': Already a variable with this name in this scope."));
   });
 
   it('duplicate local', () => {
@@ -24,7 +26,7 @@ describe('Variables', () => {
         var a = "other";
       }
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'a': Already a variable with this name in this scope."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'a': Already a variable with this name in this scope."));
   });
 
   it('duplicate parameter', () => {
@@ -33,7 +35,7 @@ describe('Variables', () => {
         "body";
       }
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'arg': Already a variable with this name in this scope."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'arg': Already a variable with this name in this scope."));
   });
 
   it('early bound', () => {
@@ -204,7 +206,7 @@ describe('Variables', () => {
 
   it('use false as var', () => {
     System.run('var false = "value";');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'false': Expected variable name."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'false': Expected variable name."));
   });
 
   it('use global in initializer', () => {
@@ -231,11 +233,11 @@ describe('Variables', () => {
 
   it('use nil as var', () => {
     System.run('var nil = "value";');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'nil': Expected variable name."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'nil': Expected variable name."));
   });
 
   it('use this as var', () => {
     System.run('var this = "value";');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'this': Expected variable name."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'this': Expected variable name."));
   });
 });

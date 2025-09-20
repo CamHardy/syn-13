@@ -3,14 +3,16 @@ import { System } from '../tree-walker/system.js';
 
 describe('Functions', () => {
   const consoleMock = vi.spyOn(console, 'log');
+  const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('body must be block', () => {
     System.run('fun f() 123;');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '123': Expected '{' before function body."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at '123': Expected '{' before function body."));
   });
 
   it('empty body', () => {
@@ -74,7 +76,7 @@ describe('Functions', () => {
 
   it('missing comma in parameters', () => {
     System.run('fun foo(a, b c, d, e, f) {}');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'c': Expected ')' after function parameters."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'c': Expected ')' after function parameters."));
   });
 
   it('mutual recursion', () => {
@@ -203,7 +205,7 @@ describe('Functions', () => {
         );
       }
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'a': Cannot have more than 255 arguments."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'a': Cannot have more than 255 arguments."));
   });
 
   it('too many parameters', () => {
@@ -227,6 +229,6 @@ describe('Functions', () => {
         a241, a242, a243, a244, a245, a246, a247, a248, a249, a250, a251, a252, a253, a254, a255, a256
       ) {}
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'a256': Cannot have more than 255 parameters."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'a256': Cannot have more than 255 parameters."));
   });
 });

@@ -64,7 +64,7 @@ export class System {
 
 	/** @param { RuntimeError } error */
 	static runtimeError(error) {
-		console.log(`${error.message}\n[line ${error.token.line}]`);
+		console.error(`${error.message}\n[line ${error.token.line}]`);
 		this.hadRuntimeError = true;
 	}
 
@@ -74,7 +74,7 @@ export class System {
 	 * @param { string } message 
 	 */
 	static #report(line, where, message) {
-		console.log(`[line ${line}] Error${where}: ${message}`);
+		console.error(`[line ${line}] Error${where}: ${message}`);
 		this.hadError = true;
 	}
 }

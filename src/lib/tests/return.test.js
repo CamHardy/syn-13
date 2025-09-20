@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('Return', () => {
   const consoleMock = vi.spyOn(console, 'log');
+	const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('after else', () => {
@@ -43,7 +45,7 @@ describe('Return', () => {
 	
   it('at top level', () => {
 		System.run('return "wat";');
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'return': Can't return from top-level code."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'return': Can't return from top-level code."));
 	});
 
   it('in function', () => {

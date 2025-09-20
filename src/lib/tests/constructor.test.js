@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('Constructors', () => {
   const consoleMock = vi.spyOn(console, 'log');
+	const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('arguments', () => {
@@ -169,6 +171,6 @@ describe('Constructors', () => {
 				}
 			}
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'return': Can't return a value from an initializer."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'return': Can't return a value from an initializer."));
 	});
 });

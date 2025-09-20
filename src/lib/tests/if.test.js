@@ -3,19 +3,21 @@ import { System } from '../tree-walker/system.js';
 
 describe('If Statements', () => {
   const consoleMock = vi.spyOn(console, 'log');
+  const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('class in else', () => {
     System.run('if (true) "ok"; else class Foo {}');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
   });
 
   it('class in then', () => {
     System.run('if (false) class Foo {}');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
   });
 
   it('dangling else', () => {
@@ -40,12 +42,12 @@ describe('If Statements', () => {
 
   it('function in else', () => {
     System.run('if (true) "ok"; else fun foo() {}');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'fun': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'fun': Expected expression."));
   });
 
   it('function in then', () => {
     System.run('if (true) fun foo() {}');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'fun': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'fun': Expected expression."));
   });
 
   it('if', () => {
@@ -78,11 +80,11 @@ describe('If Statements', () => {
 
   it('var in else', () => {
     System.run('if (true) "ok"; else var foo;');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
   });
 
   it('var in then', () => {
     System.run('if (true) var foo;');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
   });
 });

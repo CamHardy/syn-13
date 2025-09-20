@@ -3,19 +3,21 @@ import { System } from '../tree-walker/system.js';
 
 describe('Numbers', () => {
   const consoleMock = vi.spyOn(console, 'log');
+	const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('decimal point at eof', () => {
 		System.run('123.');
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at end: Expected property name after ."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at end: Expected property name after ."));
 	});
 
   it('leading dot', () => {
 		System.run('.123');
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '.': Expected expression."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at '.': Expected expression."));
 	});
 
   it('literals', () => {
@@ -53,6 +55,6 @@ describe('Numbers', () => {
 
   it('trailing dot', () => {
 		System.run('123.;');
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at ';': Expected property name after ."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at ';': Expected property name after ."));
 	});
 });

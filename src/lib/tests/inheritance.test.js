@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('Inheritance', () => {
   const consoleMock = vi.spyOn(console, 'log');
+	const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('constructor', () => {
@@ -78,7 +80,7 @@ describe('Inheritance', () => {
 
 			class Bar < (Foo) {}
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '(': Expected superclass name."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at '(': Expected superclass name."));
 	});
 
   it('set fields from base', () => {

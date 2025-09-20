@@ -3,14 +3,16 @@ import { System } from '../tree-walker/system.js';
 
 describe('While Loops', () => {
   const consoleMock = vi.spyOn(console, 'log');
+  const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('class in body', () => {
     System.run('while (true) class Foo {}');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
   });
 
   it('closure in body', () => {
@@ -42,7 +44,7 @@ describe('While Loops', () => {
 
   it('function in body', () => {
     System.run('while (true) fun foo() {}');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'fun': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'fun': Expected expression."));
   });
 
   it('return closure', () => {
@@ -100,6 +102,6 @@ describe('While Loops', () => {
 
   it('var in body', () => {
     System.run('while (true) var foo;');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
   });
 });

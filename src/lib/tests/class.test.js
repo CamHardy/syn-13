@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('Classes', () => {
   const consoleMock = vi.spyOn(console, 'log');
+	const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
 	it('empty', () => {
@@ -19,7 +21,7 @@ describe('Classes', () => {
 
 	it('inherit self', () => {
 		System.run('class Foo < Foo {}');
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'Foo': A class can't inherit from itself."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'Foo': A class can't inherit from itself."));
 	});
 
 	it('inherited method', () => {
@@ -72,7 +74,7 @@ describe('Classes', () => {
 				class Foo < Foo {}
 			}
 		`);
-		expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at 'Foo': A class can't inherit from itself."));
+		expect(errorMock).nthCalledWith(1, expect.stringContaining("Error at 'Foo': A class can't inherit from itself."));
 	});
 
 	it('local reference', () => {

@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('Assignment', () => {
   const consoleMock = vi.spyOn(console, 'log');
+  const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('associativity', () => {
@@ -45,7 +47,7 @@ describe('Assignment', () => {
       var a = "a";
       (a) = "value";
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '=': Invalid assignment target."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at '=': Invalid assignment target."));
   });
 
   it('infix operator', () => {
@@ -54,7 +56,7 @@ describe('Assignment', () => {
       var b = "b";
       a + b = "value";
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '=': Invalid assignment target."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at '=': Invalid assignment target."));
   });
 
   it('local', () => {
@@ -79,7 +81,7 @@ describe('Assignment', () => {
       var a = "a";
       !a = "value";
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '=': Invalid assignment target."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at '=': Invalid assignment target."));
   });
 
   it('syntax', () => {
@@ -103,7 +105,7 @@ describe('Assignment', () => {
 
       Foo();
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '=': Invalid assignment target."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at '=': Invalid assignment target."));
   });
 
   it('undefined', () => {

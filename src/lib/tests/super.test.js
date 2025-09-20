@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('Super', () => {
   const consoleMock = vi.spyOn(console, 'log');
+	const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
 	it('bound method', () => {
@@ -187,7 +189,7 @@ describe('Super', () => {
 
 			Base().foo();
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' in a class with no superclass."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' in a class with no superclass."));
 	});
 
 	it('no superclass call', () => {
@@ -200,7 +202,7 @@ describe('Super', () => {
 
 			Base().foo();
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' in a class with no superclass."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' in a class with no superclass."));
 	});
 
 	it('no superclass method', () => {
@@ -229,7 +231,7 @@ describe('Super', () => {
 				}
 			}
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at ')': Expected '.' after 'super'."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at ')': Expected '.' after 'super'."));
 	});
 
 	it('reassign superclass', () => {
@@ -266,8 +268,8 @@ describe('Super', () => {
 			super.foo("bar");
 			super.foo;
 		`);
-		expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
-		expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
+		expect(errorMock).nthCalledWith(1, expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
+		expect(errorMock).nthCalledWith(2, expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
 	});
 
 	it('super in closure in inherited method', () => {
@@ -336,7 +338,7 @@ describe('Super', () => {
 			super.bar();
 			fun foo() {}
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'super': Can't use 'super' outside of a class."));
 	});
 
 	it('super without dot', () => {
@@ -349,8 +351,8 @@ describe('Super', () => {
 				}
 			}
 		`);
-		expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at ';': Expected expression."));
-		expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at ';': Expected '.' after 'super'."));
+		expect(errorMock).nthCalledWith(1, expect.stringContaining("Error at ';': Expected expression."));
+		expect(errorMock).nthCalledWith(2, expect.stringContaining("Error at ';': Expected '.' after 'super'."));
 	});
 
 	it('super without name', () => {
@@ -363,8 +365,8 @@ describe('Super', () => {
 				}
 			}
 		`);
-		expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at ';': Expected expression."));
-		expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at ';': Expected superclass method name."));
+		expect(errorMock).nthCalledWith(1, expect.stringContaining("Error at ';': Expected expression."));
+		expect(errorMock).nthCalledWith(2, expect.stringContaining("Error at ';': Expected superclass method name."));
 	});
 
 	it('this in superclass method', () => {

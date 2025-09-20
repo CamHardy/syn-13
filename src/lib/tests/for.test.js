@@ -3,14 +3,16 @@ import { System } from '../tree-walker/system.js';
 
 describe('For Loops', () => {
   const consoleMock = vi.spyOn(console, 'log');
+  const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
   it('class in body', () => {
     System.run('for (;;) class Foo {}');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'class': Expected expression."));
   });
 
   it('closure in body', () => {
@@ -47,7 +49,7 @@ describe('For Loops', () => {
     System.run(`
       for (;;) fun foo() {}
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'fun': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'fun': Expected expression."));
   });
 
   it('return closure', () => {
@@ -114,21 +116,21 @@ describe('For Loops', () => {
     System.run(`
       for (var a = 1; {}; a = a + 1) {}
     `);
-    expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at '{': Expected expression."));
-    expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at ')': Expected ; after expression."));
+    expect(errorMock).nthCalledWith(1, expect.stringContaining("Error at '{': Expected expression."));
+    expect(errorMock).nthCalledWith(2, expect.stringContaining("Error at ')': Expected ; after expression."));
   });
 
   it('statement increment', () => {
     System.run(`
       for (var a = 1; a < 2; {}) {}
     `);
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at '{': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at '{': Expected expression."));
   });
 
   it('statement initializer', () => {
     System.run('for ({}; a < 2; a = a + 1) {}');
-    expect(consoleMock).nthCalledWith(1, expect.stringContaining("Error at '{': Expected expression."));
-    expect(consoleMock).nthCalledWith(2, expect.stringContaining("Error at ')': Expected ; after expression."));
+    expect(errorMock).nthCalledWith(1, expect.stringContaining("Error at '{': Expected expression."));
+    expect(errorMock).nthCalledWith(2, expect.stringContaining("Error at ')': Expected ; after expression."));
   });
 
   it('syntax', () => {
@@ -182,6 +184,6 @@ describe('For Loops', () => {
 
   it('var in body', () => {
     System.run('for (;;) var foo;');
-    expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
+    expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'var': Expected expression."));
   });
 });

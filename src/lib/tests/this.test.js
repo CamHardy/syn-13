@@ -3,9 +3,11 @@ import { System } from '../tree-walker/system.js';
 
 describe('This', () => {
   const consoleMock = vi.spyOn(console, 'log');
+	const errorMock = vi.spyOn(console, 'error');
 
   afterEach(() => {
     consoleMock.mockClear();
+		errorMock.mockClear();
   });
 
 	it('closure', () => {
@@ -81,7 +83,7 @@ describe('This', () => {
 
 	it('this at top level', () => {
 		System.run('this;');
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'this': Can't use 'this' outside of a class."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'this': Can't use 'this' outside of a class."));
 	});
 
 	it('this in method', () => {
@@ -102,6 +104,6 @@ describe('This', () => {
 				this;
 			}
 		`);
-		expect(consoleMock).lastCalledWith(expect.stringContaining("Error at 'this': Can't use 'this' outside of a class."));
+		expect(errorMock).lastCalledWith(expect.stringContaining("Error at 'this': Can't use 'this' outside of a class."));
 	});
 });
