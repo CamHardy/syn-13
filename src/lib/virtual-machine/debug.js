@@ -19,6 +19,11 @@ export function disassembleChunk(chunk, name) {
  */
 function disassembleInstruction(chunk, offset) {
 	let output = String(offset).padStart(4, '0');
+	if (offset > 0 && chunk.lines[offset] === chunk.lines[offset - 1]) {
+		output += '    |';
+	} else {
+		output += ` ${String(chunk.lines[offset]).padStart(4, ' ')}`;
+	}
 	let instruction = chunk.code[offset];
 	switch (instruction) {
 		case OpCode.OP_RETURN:
@@ -51,7 +56,7 @@ function simpleInstruction(name, offset, output) {
 function constantInstruction(name, chunk, offset, output) {
 	let constant = chunk.code[offset + 1];
 	name = name.padEnd(16);
-	console.log(`${output} ${name} ${String(constant).padStart(4, '0')} ${chunk.constants.values[constant]}`);
+	console.log(`${output} ${name} ${String(constant).padStart(4, ' ')} '${chunk.constants.values[constant]}'`);
 
 	return offset + 2;
 }
