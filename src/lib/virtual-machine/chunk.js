@@ -4,8 +4,12 @@ import { ValueArray } from "./value.js";
 
 export const OpCode = Object.freeze({
 	OP_CONSTANT: 1,
-	OP_NEGATE: 2,
-	OP_RETURN: 3
+	OP_ADD: 2,
+	OP_SUBTRACT: 3,
+	OP_MULTIPLY: 4,
+	OP_DIVIDE: 5,
+	OP_NEGATE: 6,
+	OP_RETURN: 7
 });
 
 export class Chunk {

@@ -37,8 +37,15 @@ export class VM {
 	}
 
 	run() {
-		let READ_BYTE = () => this.chunk.code[this.ip++];
-		let READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
+		const READ_BYTE = () => this.chunk.code[this.ip++];
+		const READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
+
+		/** @param { (a: Value, b: Value) => Value } op */
+		const BINARY_OP = (op) => {
+			const b = this.pop();
+			const a = this.pop();
+			this.push(op(a, b));
+		};
 
 		for (;;) {
 			if (DEBUG_TRACE_EXECUTION) {
@@ -54,6 +61,18 @@ export class VM {
 				case OpCode.OP_CONSTANT:
 					const constant = READ_CONSTANT();
 					this.push(constant);
+					break;
+				case OpCode.OP_ADD:
+					BINARY_OP((a, b) => a + b);
+					break;
+				case OpCode.OP_SUBTRACT:
+					BINARY_OP((a, b) => a - b);
+					break;
+				case OpCode.OP_MULTIPLY:
+					BINARY_OP((a, b) => a * b);
+					break;
+				case OpCode.OP_DIVIDE:
+					BINARY_OP((a, b) => a / b);
 					break;
 				case OpCode.OP_NEGATE:
 					this.push(-this.pop());
