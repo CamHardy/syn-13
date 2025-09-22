@@ -17,7 +17,7 @@ export function disassembleChunk(chunk, name) {
  * @param { Chunk } chunk 
  * @param { number } offset 
  */
-function disassembleInstruction(chunk, offset) {
+export function disassembleInstruction(chunk, offset) {
 	let output = String(offset).padStart(4, '0');
 	if (offset > 0 && chunk.lines[offset] === chunk.lines[offset - 1]) {
 		output += '    |';
