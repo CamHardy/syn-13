@@ -55,6 +55,9 @@ export class VM {
 					const constant = READ_CONSTANT();
 					this.push(constant);
 					break;
+				case OpCode.OP_NEGATE:
+					this.push(-this.pop());
+					break;
 				case OpCode.OP_RETURN:
 					console.log(this.pop());
 					return InterpretResult.INTERPRET_OK;

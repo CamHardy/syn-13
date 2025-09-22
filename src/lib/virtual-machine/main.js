@@ -10,6 +10,7 @@ let chunk = new Chunk();
 let constant = chunk.addConstant(1.2);
 chunk.write(OpCode.OP_CONSTANT, 123);
 chunk.write(constant, 123);
+chunk.write(OpCode.OP_NEGATE, 123);
 
 chunk.write(OpCode.OP_RETURN, 123);
 

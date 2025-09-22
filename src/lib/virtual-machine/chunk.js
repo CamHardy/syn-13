@@ -3,8 +3,9 @@ import { ValueArray } from "./value.js";
 /** @import { Value } from "./value.js" */
 
 export const OpCode = Object.freeze({
-	OP_RETURN: 1,
-	OP_CONSTANT: 2
+	OP_CONSTANT: 1,
+	OP_NEGATE: 2,
+	OP_RETURN: 3
 });
 
 export class Chunk {
