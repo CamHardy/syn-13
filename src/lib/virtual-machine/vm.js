@@ -1,5 +1,4 @@
-import { Chunk } from './chunk.js';
-import { OpCode } from './chunk.js';
+import { Chunk, OpCode } from './chunk.js';
 import { disassembleInstruction } from './debug.js';
 import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
@@ -31,9 +30,22 @@ export class VM {
 
 	/** @param { string } source */
 	interpret(source) {
-		compile(source);
+		/** @type { Chunk | null } */
+		let chunk = new Chunk();
 
-		return InterpretResult.INTERPRET_OK;
+		if (!compile(source, chunk)) {
+			chunk = null;
+
+			return InterpretResult.INTERPRET_COMPILE_ERROR;
+		}
+
+		this.chunk = chunk;
+		this.ip = this.chunk.count;
+
+		let result = this.run();
+		chunk = null;
+
+		return result;
 	}
 
 	run() {

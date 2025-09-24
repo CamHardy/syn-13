@@ -3,8 +3,7 @@
 /** 
  * @typedef { Object } Token
  * @property { TokenType } type
- * @property { number } start
- * @property { number } length
+ * @property { string } lexeme
  * @property { number } line
  */
 
@@ -102,8 +101,7 @@ export class Scanner {
 		/** @type { Token } */
 		let token = {
 			type,
-			start: this.start,
-			length: this.current - this.start,
+			lexeme: this.source.substring(this.start, this.current),
 			line: this.line
 		};
 
@@ -115,8 +113,7 @@ export class Scanner {
 		/** @type { Token } */
 		let token = {
 			type: 'TOKEN_ERROR',
-			start: 0,
-			length: message.length,
+			lexeme: message,
 			line: this.line
 		};
 
