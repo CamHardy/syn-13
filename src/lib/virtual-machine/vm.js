@@ -2,12 +2,13 @@ import { Chunk } from './chunk.js';
 import { OpCode } from './chunk.js';
 import { disassembleInstruction } from './debug.js';
 import { DEBUG_TRACE_EXECUTION } from './common.js';
+import { compile } from './compiler.js';
 /** @import { Value } from './value.js' */
 
 /** @type { number } */
 const STACK_MAX = 256;
 
-const InterpretResult = Object.freeze({
+export const InterpretResult = Object.freeze({
 	INTERPRET_OK: 0,
 	INTERPRET_COMPILE_ERROR: 1,
 	INTERPRET_RUNTIME_ERROR: 2
@@ -28,12 +29,11 @@ export class VM {
 		this.resetStack();
 	}
 
-	/** @param { Chunk } chunk */
-	interpret(chunk) {
-		this.chunk = chunk;
-		this.ip = 0;
+	/** @param { string } source */
+	interpret(source) {
+		compile(source);
 
-		return this.run();
+		return InterpretResult.INTERPRET_OK;
 	}
 
 	run() {

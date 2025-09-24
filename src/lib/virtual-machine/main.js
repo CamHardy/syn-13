@@ -1,32 +1,42 @@
 import { Chunk, OpCode } from './chunk.js';
 import { disassembleChunk } from './debug.js';
-import { VM } from './vm.js';
+import { VM, InterpretResult } from './vm.js';
+import fs from 'fs';
 
 /** @type { VM | null } */
 let vm = new VM();
 
-/** @type { Chunk | null } */
-let chunk = new Chunk();
-let constant = chunk.addConstant(1.2);
-chunk.write(OpCode.OP_CONSTANT, 123);
-chunk.write(constant, 123);
+function repl() {
+	let line = new Array(1024);
+	for (;;) {
+		process.stdout.write('> ');
 
-constant = chunk.addConstant(3.4);
-chunk.write(OpCode.OP_CONSTANT, 123);
-chunk.write(constant, 123);
+		/** @type { string | null } */
+		let line = process.stdin.read();
+		if (line === null) {
+			break;
+		} else {
+			vm?.interpret(line);
+		}
+	}
+}
 
-chunk.write(OpCode.OP_ADD, 123);
+/** @param { string } path */
+function runFile(path) {
+	let source = fs.readFileSync(path, 'utf-8');
+	let result = /** @type { import('./vm.js').InterpretResult } */ (vm?.interpret(source));
 
-constant = chunk.addConstant(5.6);
-chunk.write(OpCode.OP_CONSTANT, 123);
-chunk.write(constant, 123);
+	if (result === InterpretResult.INTERPRET_COMPILE_ERROR) process.exit(65);
+	if (result === InterpretResult.INTERPRET_RUNTIME_ERROR) process.exit(70);
+}
 
-chunk.write(OpCode.OP_DIVIDE, 123);
-chunk.write(OpCode.OP_NEGATE, 123);
+if (process.argv.length === 2) {
+	repl();
+} else if (process.argv.length === 3) {
+	runFile(process.argv[0]);
+} else {
+	console.log('Usage: node main.js [path]');
+	process.exit(64);
+}
 
-chunk.write(OpCode.OP_RETURN, 123);
-
-disassembleChunk(chunk, 'test chunk');
-vm.interpret(chunk);
 vm = null;
-chunk = null;
