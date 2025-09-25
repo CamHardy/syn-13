@@ -32,6 +32,8 @@ export class Scanner {
 		}
 
 		const c = this.advance();
+
+		if (this.isAlpha(c)) return this.identifier();
 		if (this.isDigit(c)) return this.number();
 
 		switch(c) {
@@ -58,6 +60,13 @@ export class Scanner {
 
 	isAtEnd() {
 		return this.current === this.source.length;
+	}
+
+	/** @param { string } c */
+	isAlpha(c) {
+		return (c >= 'a' && c <= 'z') || 
+					 (c >= 'A' && c <= 'Z') || 
+						c === '_';
 	}
 
 	/** @param { string } c */
@@ -137,6 +146,62 @@ export class Scanner {
 					return;
 			}
 		}
+	}
+
+	identifier() {
+		while (this.isAlpha(this.peek()) || this.isDigit(this.peek())) this.advance();
+
+		return this.makeToken(/** @type { TokenType } */ (this.identifierType()));
+	}
+
+	identifierType() {
+		switch(this.source.charAt(this.start)) {
+			case 'a': return this.checkKeyword(1, 2, 'nd', 'TOKEN_AND');
+			case 'c': return this.checkKeyword(1, 4, 'lass', 'TOKEN_CLASS');
+			case 'e': return this.checkKeyword(1, 3, 'lse', 'TOKEN_ELSE');
+			case 'f':
+				if (this.current - this.start > 1) {
+					switch (this.source.charAt(this.start + 1)) {
+						case 'a': return this.checkKeyword(2, 3, 'lse', 'TOKEN_FALSE');
+						case 'o': return this.checkKeyword(2, 1, 'r', 'TOKEN_FOR');
+						case 'u': return this.checkKeyword(2, 1, 'n', 'TOKEN_FUN');
+					}
+				}
+				break;
+			case 'i': return this.checkKeyword(1, 1, 'f', 'TOKEN_IF');
+			case 'n': return this.checkKeyword(1, 2, 'il', 'TOKEN_NIL');
+			case 'o': return this.checkKeyword(1, 1, 'r', 'TOKEN_OR');
+			case 'p': return this.checkKeyword(1, 4, 'rint', 'TOKEN_PRINT');
+			case 'r': return this.checkKeyword(1, 5, 'eturn', 'TOKEN_RETURN');
+			case 's': return this.checkKeyword(1, 4, 'uper', 'TOKEN_SUPER');
+			case 't':
+				if (this.current - this.start > 1) {
+					switch (this.source.charAt(this.start + 1)) {
+						case 'h': return this.checkKeyword(2, 2, 'is', 'TOKEN_THIS');
+						case 'r': return this.checkKeyword(2, 2, 'ue', 'TOKEN_TRUE');
+					}
+				}
+				break;
+			case 'v': return this.checkKeyword(1, 2, 'ar', 'TOKEN_VAR');
+			case 'w': return this.checkKeyword(1, 4, 'hile', 'TOKEN_WHILE');
+		}
+
+		return 'TOKEN_IDENTIFIER';
+	}
+
+	/**
+	 * @param { number } start 
+	 * @param { number } length 
+	 * @param { string } rest 
+	 * @param { TokenType } type 
+	 * @returns 
+	 */
+	checkKeyword(start, length, rest, type) {
+		if (this.current - this.start === start + length && this.source.substring(this.start + start, this.start + start + length) === rest) {
+			return type;
+		}
+
+		return 'TOKEN_IDENTIFIER';
 	}
 
 	number() {
