@@ -2,14 +2,15 @@ import { growArray, growCapacity } from "./memory.js";
 import { ValueArray } from "./value.js";
 /** @import { Value } from "./value.js" */
 
+/** @enum { number } */
 export const OpCode = Object.freeze({
-	OP_CONSTANT: 1,
-	OP_ADD: 2,
-	OP_SUBTRACT: 3,
-	OP_MULTIPLY: 4,
-	OP_DIVIDE: 5,
-	OP_NEGATE: 6,
-	OP_RETURN: 7
+	OP_CONSTANT: 0x01,
+	OP_ADD: 0x02,
+	OP_SUBTRACT: 0x03,
+	OP_MULTIPLY: 0x04,
+	OP_DIVIDE: 0x05,
+	OP_NEGATE: 0x06,
+	OP_RETURN: 0x07
 });
 
 export class Chunk {
