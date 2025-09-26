@@ -1,5 +1,7 @@
 import { Scanner } from './scanner.js';
 import { OpCode } from './chunk.js';
+import { disassembleChunk } from './debug.js';
+import { DEBUG_PRINT_CODE } from './common.js';
 /** @import { Chunk } from './chunk.js' */
 /** @import { Token, TokenType } from './scanner.js' */
 /** @import { Value } from "./value.js" */
@@ -91,6 +93,12 @@ function consume(type, message) {
 
 function endCompiler() {
 	emitReturn();
+
+	if (DEBUG_PRINT_CODE) {
+		if (!parser.hadError) {
+			disassembleChunk(currentChunk(), 'code');
+		}
+	}
 }
 
 function binary() {
