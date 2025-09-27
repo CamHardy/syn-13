@@ -40,7 +40,7 @@ export class VM {
 		}
 
 		this.chunk = chunk;
-		this.ip = this.chunk.count;
+		this.ip = 0;
 
 		let result = this.run();
 		chunk = null;

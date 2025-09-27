@@ -2,23 +2,33 @@ import { Chunk, OpCode } from './chunk.js';
 import { disassembleChunk } from './debug.js';
 import { VM, InterpretResult } from './vm.js';
 import fs from 'fs';
+import readline from 'node:readline';
 
 /** @type { VM | null } */
 let vm = new VM();
 
-function repl() {
-	let line = new Array(1024);
-	for (;;) {
-		process.stdout.write('> ');
+async function repl() {
+	const rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
 
+	for (;;) {
 		/** @type { string | null } */
-		let line = process.stdin.read();
+		let line = await new Promise((resolve) => {
+			rl.once('close', () => resolve(null));
+			rl.question('> ', resolve);
+		});
+
 		if (line === null) {
+			process.stdout.write('\n');
 			break;
-		} else {
-			vm?.interpret(line);
 		}
+
+		vm?.interpret(line);
 	}
+
+	rl.close();
 }
 
 /** @param { string } path */
@@ -31,9 +41,9 @@ function runFile(path) {
 }
 
 if (process.argv.length === 2) {
-	repl();
+	await repl();
 } else if (process.argv.length === 3) {
-	runFile(process.argv[0]);
+	runFile(process.argv[2]);
 } else {
 	console.log('Usage: node main.js [path]');
 	process.exit(64);
