@@ -230,7 +230,7 @@ function emitReturn() {
 	emitByte(OpCode.OP_RETURN);
 }
 
-/** @param { Value } value */
+/** @param { number } value */
 function makeConstant(value) {
 	let constant = currentChunk().addConstant(value);
 	if (constant > 255) {
@@ -241,7 +241,7 @@ function makeConstant(value) {
 	return constant;
 }
 
-/** @param { Value } value */
+/** @param { number } value */
 function emitConstant(value) {
 	emitBytes(OpCode.OP_CONSTANT, makeConstant(value));
 }

@@ -18,7 +18,7 @@ export class VM {
 	chunk = new Chunk();
 	/** @type { number } */
 	ip = 0;
-	/** @type { Value[] } */
+	/** @type { number[] } */
 	stack = new Array(STACK_MAX);
 	/** @type { number } */
 	stackTop = 0;
@@ -52,7 +52,7 @@ export class VM {
 		const READ_BYTE = () => this.chunk.code[this.ip++];
 		const READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
 
-		/** @param { (a: Value, b: Value) => Value } op */
+		/** @param { (a: number, b: number) => number } op */
 		const BINARY_OP = (op) => {
 			const b = this.pop();
 			const a = this.pop();
@@ -100,7 +100,7 @@ export class VM {
 		this.stackTop = 0;
 	}
 
-	/** @param { Value } value */
+	/** @param { number } value */
 	push(value) {
 		this.stack[this.stackTop++] = value;
 	}

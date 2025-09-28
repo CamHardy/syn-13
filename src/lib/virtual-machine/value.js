@@ -1,10 +1,17 @@
 import { growCapacity, growArray } from './memory.js';
-/** @typedef { number } Value */
+
+/** @typedef { 'VAL_BOOL' | 'VAL_NIL' | 'VAL_NUMBER' } ValueType */
+
+/** 
+ * @typedef { Object } Value 
+ * @property { ValueType } type
+ * @property { { boolean: boolean, number: number } } as
+*/
 
 export class ValueArray {
 	count;
 	capacity;
-	/** @type { Value[] } */
+	/** @type { number[] } */
 	values;
 
 	constructor() {
@@ -13,7 +20,7 @@ export class ValueArray {
 		this.values = [];
 	}
 
-	/** @param { Value } value */
+	/** @param { number } value */
 	write(value) {
 		if (this.capacity < this.count + 1) {
 			let oldCapacity = this.capacity;

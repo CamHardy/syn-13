@@ -46,7 +46,7 @@ export class Chunk {
 		this.count++;
 	}
 
-	/** @param { Value } value */
+	/** @param { number } value */
 	addConstant(value) {
 		this.constants.write(value);
 		return this.constants.count - 1;
