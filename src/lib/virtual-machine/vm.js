@@ -6,6 +6,7 @@ import { compile } from './compiler.js';
 
 /** @type { number } */
 const STACK_MAX = 256;
+const RUNTIME_ERROR = new Error();
 
 export const InterpretResult = Object.freeze({
 	INTERPRET_OK: 0,
@@ -15,17 +16,17 @@ export const InterpretResult = Object.freeze({
 
 export class VM {
 	/** @type { Chunk } */
-	chunk = new Chunk();
+	static chunk = new Chunk();
 	/** @type { number } */
-	ip = 0;
+	static ip = 0;
 	/** @type { number[] } */
-	stack = new Array(STACK_MAX);
+	static stack = new Array(STACK_MAX);
 	/** @type { number } */
-	stackTop = 0;
+	static stackTop = 0;
 
 
 	constructor() {
-		this.resetStack();
+		VM.resetStack();
 	}
 
 	/** @param { string } source */
@@ -42,70 +43,104 @@ export class VM {
 		this.chunk = chunk;
 		this.ip = 0;
 
-		let result = this.run();
+		let result = VM.run();
 		chunk = null;
 
 		return result;
 	}
 
-	run() {
+	static run() {
 		const READ_BYTE = () => this.chunk.code[this.ip++];
 		const READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
-
 		/** @param { (a: number, b: number) => number } op */
 		const BINARY_OP = (op) => {
-			const b = this.pop();
-			const a = this.pop();
+			if (typeof this.peek(0) !== 'number' || typeof this.peek(1) !== 'number') {
+				this.runtimeError('Operands must be numbers.');
+				return false;
+			}
+			const b = /** @type { number } */ (this.pop());
+			const a = /** @type { number } */ (this.pop());
 			this.push(op(a, b));
 		};
 
-		for (;;) {
-			if (DEBUG_TRACE_EXECUTION) {
-				let print = '          ';
-				for (let slot = 0; slot < this.stackTop; slot++) {
-					print += '[ ' + this.stack[slot] + ' ]';
+		try {
+			for (;;) {
+				if (DEBUG_TRACE_EXECUTION) {
+					let print = '          ';
+					for (let slot = 0; slot < this.stackTop; slot++) {
+						print += '[ ' + this.stack[slot] + ' ]';
+					}
+					console.log(print);
+					disassembleInstruction(this.chunk, this.ip);
 				}
-				console.log(print);
-				disassembleInstruction(this.chunk, this.ip);
+				
+				switch (READ_BYTE()) {
+					case OpCode.OP_CONSTANT:
+						const constant = READ_CONSTANT();
+						VM.push(constant);
+						break;
+					case OpCode.OP_ADD:
+						BINARY_OP((a, b) => a + b);
+						break;
+					case OpCode.OP_SUBTRACT:
+						BINARY_OP((a, b) => a - b);
+						break;
+					case OpCode.OP_MULTIPLY:
+						BINARY_OP((a, b) => a * b);
+						break;
+					case OpCode.OP_DIVIDE:
+						BINARY_OP((a, b) => a / b);
+						break;
+					case OpCode.OP_NEGATE:
+						VM.push(-VM.pop());
+						break;
+					case OpCode.OP_NEGATE:
+						if (!(typeof this.peek(0) === 'number')) {
+							VM.runtimeError('Operand must be a number.');
+							return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						}
+						VM.push(VM.pop());
+						break;
+					case OpCode.OP_RETURN:
+						console.log(VM.pop());
+						return InterpretResult.INTERPRET_OK;
+				}
 			}
-			let instruction;
-			switch (instruction = READ_BYTE()) {
-				case OpCode.OP_CONSTANT:
-					const constant = READ_CONSTANT();
-					this.push(constant);
-					break;
-				case OpCode.OP_ADD:
-					BINARY_OP((a, b) => a + b);
-					break;
-				case OpCode.OP_SUBTRACT:
-					BINARY_OP((a, b) => a - b);
-					break;
-				case OpCode.OP_MULTIPLY:
-					BINARY_OP((a, b) => a * b);
-					break;
-				case OpCode.OP_DIVIDE:
-					BINARY_OP((a, b) => a / b);
-					break;
-				case OpCode.OP_NEGATE:
-					this.push(-this.pop());
-					break;
-				case OpCode.OP_RETURN:
-					console.log(this.pop());
-					return InterpretResult.INTERPRET_OK;
-			}
+		} catch (e) {
+			if (e === RUNTIME_ERROR) return InterpretResult.INTERPRET_RUNTIME_ERROR;
 		}
 	}
 
-	resetStack() {
+	static resetStack() {
 		this.stackTop = 0;
 	}
 
+	/**
+   * @param { string } format
+   * @param { ...unknown } args
+   */
+  static runtimeError(format, ...args) {
+    console.error(format, ...args);
+
+    let instruction = this.ip - 1;
+    let line = this.chunk.lines[instruction];
+    console.error(`[line ${line}] in script`);
+    this.resetStack();
+
+		throw RUNTIME_ERROR;
+  }
+
 	/** @param { number } value */
-	push(value) {
-		this.stack[this.stackTop++] = value;
+	static push(value) {
+		VM.stack[VM.stackTop++] = value;
 	}
 
-	pop() {
-		return this.stack[--this.stackTop];
+	static pop() {
+		return VM.stack[--VM.stackTop];
+	}
+
+	/** @param { number } distance */
+	static peek(distance) {
+		return this.stack[this.stackTop - 1 - distance];
 	}
 } 
