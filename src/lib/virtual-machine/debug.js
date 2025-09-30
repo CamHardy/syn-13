@@ -30,6 +30,12 @@ export function disassembleInstruction(chunk, offset) {
 			return simpleInstruction('OP_RETURN', offset, output);
 		case OpCode.OP_CONSTANT:
 			return constantInstruction('OP_CONSTANT', chunk, offset, output);
+		case OpCode.OP_NIL:
+			return simpleInstruction('OP_NIL', offset, output);
+		case OpCode.OP_TRUE:
+			return simpleInstruction('OP_TRUE', offset, output);
+		case OpCode.OP_FALSE:
+			return simpleInstruction('OP_FALSE', offset, output);
 		case OpCode.OP_ADD:
 			return simpleInstruction('OP_ADD', offset, output);
 		case OpCode.OP_SUBTRACT:

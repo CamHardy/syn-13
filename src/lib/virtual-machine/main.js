@@ -25,7 +25,7 @@ async function repl() {
 			break;
 		}
 
-		vm?.interpret(line);
+		VM.interpret(line);
 	}
 
 	rl.close();
@@ -34,7 +34,7 @@ async function repl() {
 /** @param { string } path */
 function runFile(path) {
 	let source = fs.readFileSync(path, 'utf-8');
-	let result = /** @type { import('./vm.js').InterpretResult } */ (vm?.interpret(source));
+	let result = /** @type { import('./vm.js').InterpretResult } */ (VM.interpret(source));
 
 	if (result === InterpretResult.INTERPRET_COMPILE_ERROR) process.exit(65);
 	if (result === InterpretResult.INTERPRET_RUNTIME_ERROR) process.exit(70);

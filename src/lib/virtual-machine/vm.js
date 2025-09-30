@@ -2,6 +2,7 @@ import { Chunk, OpCode } from './chunk.js';
 import { disassembleInstruction } from './debug.js';
 import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
+import { NIL_VAL, BOOL_VAL, NUMBER_VAL, AS_NUMBER, IS_NUMBER } from './value.js';
 /** @import { Value } from './value.js' */
 
 /** @type { number } */
@@ -19,7 +20,7 @@ export class VM {
 	static chunk = new Chunk();
 	/** @type { number } */
 	static ip = 0;
-	/** @type { number[] } */
+	/** @type { Value[] } */
 	static stack = new Array(STACK_MAX);
 	/** @type { number } */
 	static stackTop = 0;
@@ -30,7 +31,7 @@ export class VM {
 	}
 
 	/** @param { string } source */
-	interpret(source) {
+	static interpret(source) {
 		/** @type { Chunk | null } */
 		let chunk = new Chunk();
 
@@ -54,13 +55,15 @@ export class VM {
 		const READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
 		/** @param { (a: number, b: number) => number } op */
 		const BINARY_OP = (op) => {
-			if (typeof this.peek(0) !== 'number' || typeof this.peek(1) !== 'number') {
+			if (!IS_NUMBER(this.peek(0)) || !IS_NUMBER(this.peek(1))) {
 				this.runtimeError('Operands must be numbers.');
-				return false;
+				throw RUNTIME_ERROR;
 			}
-			const b = /** @type { number } */ (this.pop());
-			const a = /** @type { number } */ (this.pop());
-			this.push(op(a, b));
+			/** @type { number } */
+			const b = AS_NUMBER(this.pop());
+			/** @type { number } */
+			const a = AS_NUMBER(this.pop());
+			this.push(NUMBER_VAL(op(a, b)));
 		};
 
 		try {
@@ -79,6 +82,15 @@ export class VM {
 						const constant = READ_CONSTANT();
 						VM.push(constant);
 						break;
+					case OpCode.OP_NIL:
+						VM.push(NIL_VAL());
+						break;
+					case OpCode.OP_TRUE:
+						VM.push(BOOL_VAL(true));
+						break;
+					case OpCode.OP_FALSE:
+						VM.push(BOOL_VAL(false));
+						break;
 					case OpCode.OP_ADD:
 						BINARY_OP((a, b) => a + b);
 						break;
@@ -92,10 +104,7 @@ export class VM {
 						BINARY_OP((a, b) => a / b);
 						break;
 					case OpCode.OP_NEGATE:
-						VM.push(-VM.pop());
-						break;
-					case OpCode.OP_NEGATE:
-						if (!(typeof this.peek(0) === 'number')) {
+						if (!IS_NUMBER(this.peek(0))) {
 							VM.runtimeError('Operand must be a number.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
@@ -130,11 +139,12 @@ export class VM {
 		throw RUNTIME_ERROR;
   }
 
-	/** @param { number } value */
+	/** @param { Value } value */
 	static push(value) {
 		VM.stack[VM.stackTop++] = value;
 	}
 
+	/** @return { Value } */
 	static pop() {
 		return VM.stack[--VM.stackTop];
 	}

@@ -2,6 +2,7 @@ import { Scanner } from './scanner.js';
 import { OpCode } from './chunk.js';
 import { disassembleChunk } from './debug.js';
 import { DEBUG_PRINT_CODE } from './common.js';
+import { NUMBER_VAL } from './value.js';
 /** @import { Chunk } from './chunk.js' */
 /** @import { Token, TokenType } from './scanner.js' */
 /** @import { Value } from "./value.js" */
@@ -115,6 +116,15 @@ function binary() {
 	}
 }
 
+function literal() {
+	switch (parser.previous.type) {
+		case 'TOKEN_FALSE': emitByte(OpCode.OP_FALSE); break;
+		case 'TOKEN_NIL': emitByte(OpCode.OP_NIL); break;
+		case 'TOKEN_TRUE': emitByte(OpCode.OP_TRUE); break;
+		default: return; // Unreachable.
+	}
+}
+
 function grouping() {
 	expression();
 	consume('TOKEN_RIGHT_PAREN', "Expected ')' after expression.");
@@ -122,7 +132,7 @@ function grouping() {
 
 function number() {
 	let value = parseFloat(parser.previous.lexeme);
-	emitConstant(value);
+	emitConstant(NUMBER_VAL(value));
 }
 
 function unary() {
@@ -165,17 +175,17 @@ let rules = {
 	['TOKEN_AND']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_CLASS']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_ELSE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
-	['TOKEN_FALSE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_FALSE']: { prefix: literal, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_FOR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_FUN']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_IF']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
-	['TOKEN_NIL']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_NIL']: { prefix: literal, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_OR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_PRINT']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_RETURN']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_SUPER']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_THIS']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
-	['TOKEN_TRUE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_TRUE']: { prefix: literal, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_VAR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_WHILE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_ERROR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
@@ -230,7 +240,7 @@ function emitReturn() {
 	emitByte(OpCode.OP_RETURN);
 }
 
-/** @param { number } value */
+/** @param { Value } value */
 function makeConstant(value) {
 	let constant = currentChunk().addConstant(value);
 	if (constant > 255) {
@@ -241,7 +251,7 @@ function makeConstant(value) {
 	return constant;
 }
 
-/** @param { number } value */
+/** @param { Value } value */
 function emitConstant(value) {
 	emitBytes(OpCode.OP_CONSTANT, makeConstant(value));
 }

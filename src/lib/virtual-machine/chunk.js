@@ -5,12 +5,15 @@ import { ValueArray } from "./value.js";
 /** @enum { number } */
 export const OpCode = Object.freeze({
 	OP_CONSTANT: 0x01,
-	OP_ADD: 0x02,
-	OP_SUBTRACT: 0x03,
-	OP_MULTIPLY: 0x04,
-	OP_DIVIDE: 0x05,
-	OP_NEGATE: 0x06,
-	OP_RETURN: 0x07
+	OP_NIL: 0x02,
+	OP_TRUE: 0x03,
+	OP_FALSE: 0x04,
+	OP_ADD: 0x05,
+	OP_SUBTRACT: 0x06,
+	OP_MULTIPLY: 0x07,
+	OP_DIVIDE: 0x08,
+	OP_NEGATE: 0x09,
+	OP_RETURN: 0x0a
 });
 
 export class Chunk {
@@ -46,7 +49,7 @@ export class Chunk {
 		this.count++;
 	}
 
-	/** @param { number } value */
+	/** @param { Value } value */
 	addConstant(value) {
 		this.constants.write(value);
 		return this.constants.count - 1;
