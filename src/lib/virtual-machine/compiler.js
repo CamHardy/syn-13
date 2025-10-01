@@ -143,6 +143,7 @@ function unary() {
 
 	// Emit the operator instruction.
 	switch (operatorType) {
+		case 'TOKEN_BANG': emitByte(OpCode.OP_NOT); break;
 		case 'TOKEN_MINUS': emitByte(OpCode.OP_NEGATE); break;
 		default: return; // Unreachable.
 	}
@@ -161,7 +162,7 @@ let rules = {
 	['TOKEN_SEMICOLON']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_SLASH']: { prefix: null, infix: binary, precedence: Precedence.PREC_FACTOR },
 	['TOKEN_STAR']: { prefix: null, infix: binary, precedence: Precedence.PREC_FACTOR },
-	['TOKEN_BANG']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_BANG']: { prefix: unary, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_BANG_EQUAL']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_EQUAL']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_EQUAL_EQUAL']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },

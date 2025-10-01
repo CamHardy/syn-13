@@ -44,6 +44,8 @@ export function disassembleInstruction(chunk, offset) {
 			return simpleInstruction('OP_MULTIPLY', offset, output);
 		case OpCode.OP_DIVIDE:
 			return simpleInstruction('OP_DIVIDE', offset, output);
+		case OpCode.OP_NOT:
+			return simpleInstruction('OP_NOT', offset, output);
 		case OpCode.OP_NEGATE:
 			return simpleInstruction('OP_NEGATE', offset, output);
 		default:

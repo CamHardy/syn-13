@@ -12,8 +12,9 @@ export const OpCode = Object.freeze({
 	OP_SUBTRACT: 0x06,
 	OP_MULTIPLY: 0x07,
 	OP_DIVIDE: 0x08,
-	OP_NEGATE: 0x09,
-	OP_RETURN: 0x0a
+	OP_NOT: 0x09,
+	OP_NEGATE: 0x0a,
+	OP_RETURN: 0x0b
 });
 
 export class Chunk {

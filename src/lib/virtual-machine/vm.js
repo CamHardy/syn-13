@@ -2,7 +2,15 @@ import { Chunk, OpCode } from './chunk.js';
 import { disassembleInstruction } from './debug.js';
 import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
-import { NIL_VAL, BOOL_VAL, NUMBER_VAL, AS_NUMBER, IS_NUMBER } from './value.js';
+import { 
+	BOOL_VAL, 
+	NIL_VAL, 
+	NUMBER_VAL, 
+	AS_BOOL,
+	AS_NUMBER, 
+	IS_BOOL,
+	IS_NIL,
+	IS_NUMBER } from './value.js';
 /** @import { Value } from './value.js' */
 
 /** @type { number } */
@@ -103,15 +111,18 @@ export class VM {
 					case OpCode.OP_DIVIDE:
 						BINARY_OP((a, b) => a / b);
 						break;
+					case OpCode.OP_NOT:
+						this.push(BOOL_VAL(this.isFalsey(this.pop())));
+						break;
 					case OpCode.OP_NEGATE:
 						if (!IS_NUMBER(this.peek(0))) {
 							VM.runtimeError('Operand must be a number.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
-						VM.push(VM.pop());
+						this.push(this.pop());
 						break;
 					case OpCode.OP_RETURN:
-						console.log(VM.pop());
+						console.log(this.pop());
 						return InterpretResult.INTERPRET_OK;
 				}
 			}
@@ -152,5 +163,10 @@ export class VM {
 	/** @param { number } distance */
 	static peek(distance) {
 		return this.stack[this.stackTop - 1 - distance];
+	}
+
+	/** @param { Value } value */
+	static isFalsey(value) {
+		return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
 	}
 } 
