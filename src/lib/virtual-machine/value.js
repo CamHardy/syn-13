@@ -1,11 +1,15 @@
 import { growCapacity, growArray } from './memory.js';
+/** @import { Obj, ObjString } from "./object.js" */
 
-/** @typedef { 'VAL_BOOL' | 'VAL_NIL' | 'VAL_NUMBER' } ValueType */
+/** @typedef { Obj } Obj */
+/** @typedef { ObjString } ObjString */
+
+/** @typedef { 'VAL_BOOL' | 'VAL_NIL' | 'VAL_NUMBER' | 'VAL_OBJ' } ValueType */
 
 /** 
  * @typedef { Object } Value 
  * @property { ValueType } type
- * @property { { boolean: boolean } | { number: number } } as
+ * @property { { boolean: boolean } | { number: number } | { obj: Obj } } as
 */
 
 /** @param { Value } value */
@@ -18,12 +22,19 @@ export function IS_NIL(value) { return value.type === 'VAL_NIL' };
 export function IS_NUMBER(value) { return value.type === 'VAL_NUMBER' };
 
 /** @param { Value } value */
+export function IS_OBJ(value) { return value.type === 'VAL_OBJ' };
+
+/** @param { Value } value */
 // @ts-ignore
 export function AS_BOOL(value) { return value.as.boolean };
 
 /** @param { Value } value */
 // @ts-ignore
 export function AS_NUMBER(value) { return value.as.number };
+
+/** @param { Value } value */
+// @ts-ignore
+export function AS_OBJ(value) { return value.as.obj };
 
 /** 
  * @param { boolean } value 
@@ -59,6 +70,19 @@ export function NUMBER_VAL(value) {
 		type: 'VAL_NUMBER',
 		as: {
 			number: value
+		}
+	};
+}
+
+/** 
+ * @param { Obj } value 
+ * @return { Value }
+ */
+export function OBJ_VAL(value) {
+	return {
+		type: 'VAL_OBJ',
+		as: {
+			obj: value
 		}
 	};
 }
