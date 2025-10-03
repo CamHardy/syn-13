@@ -10,7 +10,8 @@ import {
 	AS_NUMBER, 
 	IS_BOOL,
 	IS_NIL,
-	IS_NUMBER } from './value.js';
+	IS_NUMBER,
+	valuesEqual } from './value.js';
 /** @import { Value } from './value.js' */
 
 /** @type { number } */
@@ -61,7 +62,7 @@ export class VM {
 	static run() {
 		const READ_BYTE = () => this.chunk.code[this.ip++];
 		const READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
-		/** @param { (a: number, b: number) => number } op */
+		/** @param { (a: number, b: number) => any } op */
 		const BINARY_OP = (op) => {
 			if (!IS_NUMBER(this.peek(0)) || !IS_NUMBER(this.peek(1))) {
 				this.runtimeError('Operands must be numbers.');
@@ -98,6 +99,17 @@ export class VM {
 						break;
 					case OpCode.OP_FALSE:
 						VM.push(BOOL_VAL(false));
+						break;
+					case OpCode.OP_EQUAL:
+						let b = this.pop();
+						let a = this.pop();
+						this.push(BOOL_VAL(valuesEqual(a, b)));
+						break;
+					case OpCode.OP_GREATER:
+						BINARY_OP((a, b) => a > b);
+						break;
+					case OpCode.OP_LESS:
+						BINARY_OP((a, b) => a < b);
 						break;
 					case OpCode.OP_ADD:
 						BINARY_OP((a, b) => a + b);

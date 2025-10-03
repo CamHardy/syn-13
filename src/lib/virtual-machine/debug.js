@@ -36,6 +36,12 @@ export function disassembleInstruction(chunk, offset) {
 			return simpleInstruction('OP_TRUE', offset, output);
 		case OpCode.OP_FALSE:
 			return simpleInstruction('OP_FALSE', offset, output);
+		case OpCode.OP_EQUAL:
+			return simpleInstruction('OP_EQUAL', offset, output);
+		case OpCode.OP_GREATER:
+			return simpleInstruction('OP_GREATER', offset, output);
+		case OpCode.OP_LESS:
+			return simpleInstruction('OP_LESS', offset, output);
 		case OpCode.OP_ADD:
 			return simpleInstruction('OP_ADD', offset, output);
 		case OpCode.OP_SUBTRACT:
