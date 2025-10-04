@@ -2,7 +2,8 @@ import { Scanner } from './scanner.js';
 import { OpCode } from './chunk.js';
 import { disassembleChunk } from './debug.js';
 import { DEBUG_PRINT_CODE } from './common.js';
-import { NUMBER_VAL } from './value.js';
+import { NUMBER_VAL, OBJ_VAL } from './value.js';
+import { copyString } from './object.js';
 /** @import { Chunk } from './chunk.js' */
 /** @import { Token, TokenType } from './scanner.js' */
 /** @import { Value } from "./value.js" */
@@ -141,6 +142,10 @@ function number() {
 	emitConstant(NUMBER_VAL(value));
 }
 
+function string() {
+	emitConstant(OBJ_VAL(copyString(parser.previous.lexeme.slice(1, -1))));
+}
+
 function unary() {
 	let operatorType = parser.previous.type;
 
@@ -177,7 +182,7 @@ let rules = {
 	['TOKEN_LESS']: 					{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
 	['TOKEN_LESS_EQUAL']: 		{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
 	['TOKEN_IDENTIFIER']: 		{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_STRING']: 				{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
+	['TOKEN_STRING']: 				{ prefix: string, 	infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_NUMBER']: 				{ prefix: number, 	infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_AND']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_CLASS']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },

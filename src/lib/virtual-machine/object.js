@@ -9,11 +9,38 @@ import { AS_OBJ, IS_OBJ } from './value.js';
  */
 
 /** 
- * @typedef { Object } ObjString
- * @property { Obj } obj
- * @property { number } length
- * @property { string } chars
+ * @typedef { Obj & { length: number, chars: string} } ObjString
  */
+
+/**
+ * @param { ObjType } type
+ * @returns { Obj }
+ */
+export function allocateObject(type) {
+	let object = { type };
+	return object;
+}
+
+/** 
+ * @param { string } str 
+ * @return { ObjString }
+ */
+export function allocateString(str) {
+	/** @type { ObjString } */
+	return {
+		length: str.length,
+		chars: str,
+		type: 'OBJ_STRING'
+	};
+}
+
+/** 
+ * @param { string } str 
+ * @return { ObjString }
+ */
+export function copyString(str) {
+	return allocateString(str);
+}
 
 /** 
  * @param { Value } value 
