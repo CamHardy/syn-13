@@ -2,10 +2,12 @@ import { Chunk, OpCode } from './chunk.js';
 import { disassembleInstruction } from './debug.js';
 import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
+import { AS_STRING, IS_STRING, takeString } from './object.js';
 import { 
 	BOOL_VAL, 
 	NIL_VAL, 
 	NUMBER_VAL, 
+	OBJ_VAL, 
 	AS_BOOL,
 	AS_NUMBER, 
 	IS_BOOL,
@@ -89,50 +91,46 @@ export class VM {
 				switch (READ_BYTE()) {
 					case OpCode.OP_CONSTANT:
 						const constant = READ_CONSTANT();
-						VM.push(constant);
-						break;
+						VM.push(constant); break;
 					case OpCode.OP_NIL:
-						VM.push(NIL_VAL());
-						break;
+						VM.push(NIL_VAL()); break;
 					case OpCode.OP_TRUE:
-						VM.push(BOOL_VAL(true));
-						break;
+						VM.push(BOOL_VAL(true)); break;
 					case OpCode.OP_FALSE:
-						VM.push(BOOL_VAL(false));
-						break;
+						VM.push(BOOL_VAL(false)); break;
 					case OpCode.OP_EQUAL:
 						let b = this.pop();
 						let a = this.pop();
-						this.push(BOOL_VAL(valuesEqual(a, b)));
-						break;
+						this.push(BOOL_VAL(valuesEqual(a, b))); break;
 					case OpCode.OP_GREATER:
-						BINARY_OP((a, b) => a > b);
-						break;
+						BINARY_OP((a, b) => a > b); break;
 					case OpCode.OP_LESS:
-						BINARY_OP((a, b) => a < b);
-						break;
+						BINARY_OP((a, b) => a < b); break;
 					case OpCode.OP_ADD:
-						BINARY_OP((a, b) => a + b);
-						break;
+						if (!IS_STRING(this.peek(0)) && IS_STRING(this.peek(1))) {
+							this.concatenate();
+						} else if (IS_NUMBER(this.peek(0)) && IS_NUMBER(this.peek(1))) {
+							let b = AS_NUMBER(this.pop());
+							let a = AS_NUMBER(this.pop());
+							this.push(NUMBER_VAL(a + b));
+						} else {
+							VM.runtimeError('Operands must be two numbers or two strings.');
+							return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						}
 					case OpCode.OP_SUBTRACT:
-						BINARY_OP((a, b) => a - b);
-						break;
+						BINARY_OP((a, b) => a - b); break;
 					case OpCode.OP_MULTIPLY:
-						BINARY_OP((a, b) => a * b);
-						break;
+						BINARY_OP((a, b) => a * b); break;
 					case OpCode.OP_DIVIDE:
-						BINARY_OP((a, b) => a / b);
-						break;
+						BINARY_OP((a, b) => a / b); break;
 					case OpCode.OP_NOT:
-						this.push(BOOL_VAL(this.isFalsey(this.pop())));
-						break;
+						this.push(BOOL_VAL(this.isFalsey(this.pop()))); break;
 					case OpCode.OP_NEGATE:
 						if (!IS_NUMBER(this.peek(0))) {
 							VM.runtimeError('Operand must be a number.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
-						this.push(this.pop());
-						break;
+						this.push(this.pop()); break;
 					case OpCode.OP_RETURN:
 						console.log(this.pop());
 						return InterpretResult.INTERPRET_OK;
@@ -180,5 +178,14 @@ export class VM {
 	/** @param { Value } value */
 	static isFalsey(value) {
 		return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
+	}
+
+	static concatenate() {
+		let b = AS_STRING(this.pop());
+		let a = AS_STRING(this.pop());
+		
+		let result = takeString(a + b);
+
+		this.push(OBJ_VAL(result));
 	}
 } 

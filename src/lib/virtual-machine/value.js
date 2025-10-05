@@ -1,4 +1,5 @@
 import { growCapacity, growArray } from './memory.js';
+import { printObject, AS_STRING } from './object.js';
 /** @import { Obj, ObjString } from "./object.js" */
 
 /** @typedef { Obj } Obj */
@@ -115,14 +116,13 @@ export class ValueArray {
 	print(value) {
 		switch (value.type) {
 			case 'VAL_BOOL':
-				console.log(AS_BOOL(value) ? 'true' : 'false');
-				break;
+				console.log(AS_BOOL(value) ? 'true' : 'false'); break;
 			case 'VAL_NIL':
-				console.log('nil');
-				break;
+				console.log('nil'); break;
 			case 'VAL_NUMBER':
-				console.log(AS_NUMBER(value));
-				break;
+				console.log(AS_NUMBER(value)); break;
+			case 'VAL_OBJ':
+				printObject(value); break;
 		}
 	}
 }
@@ -137,6 +137,11 @@ export function valuesEqual(a, b) {
 		case 'VAL_BOOL': return AS_BOOL(a) === AS_BOOL(b);
 		case 'VAL_NIL': return true;
 		case 'VAL_NUMBER': return AS_NUMBER(a) === AS_NUMBER(b);
+		case 'VAL_OBJ': {
+			let aString = AS_STRING(a);
+			let bString = AS_STRING(b);
+			return aString.length === bString && aString.chars === bString.chars;
+		}
 		default: return false; // Unreachable.
 	}
 }

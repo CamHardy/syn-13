@@ -35,11 +35,28 @@ export function allocateString(str) {
 }
 
 /** 
+ * @param { string } chars  
+ * @return { ObjString }
+ */
+export function takeString(chars) {
+	return allocateString(chars);
+}
+
+/** 
  * @param { string } str 
  * @return { ObjString }
  */
 export function copyString(str) {
 	return allocateString(str);
+}
+
+/** @param { Value } value */
+export function printObject(value) {
+	switch (OBJ_TYPE(value)) {
+		case 'OBJ_STRING':
+			console.log(AS_CSTRING(value).chars);
+			break;
+	}
 }
 
 /** 
