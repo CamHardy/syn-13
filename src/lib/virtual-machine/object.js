@@ -1,4 +1,5 @@
 import { AS_OBJ, IS_OBJ } from './value.js';
+import { VM } from './vm.js';
 /** @import { Value } from "./value.js" */
 
 /** @typedef { 'OBJ_STRING' } ObjType */
@@ -6,6 +7,7 @@ import { AS_OBJ, IS_OBJ } from './value.js';
 /** 
  * @typedef { Object } Obj 
  * @property { ObjType } type
+ * @property { Obj | null } next
  */
 
 /** 
@@ -17,7 +19,11 @@ import { AS_OBJ, IS_OBJ } from './value.js';
  * @returns { Obj }
  */
 export function allocateObject(type) {
-	let object = { type };
+	let object = { 
+		type, 
+		next: VM.objects};
+
+	VM.objects = object;
 	return object;
 }
 
@@ -26,12 +32,12 @@ export function allocateObject(type) {
  * @return { ObjString }
  */
 export function allocateString(str) {
-	/** @type { ObjString } */
-	return {
+	let base = allocateObject('OBJ_STRING');
+	
+	return  Object.assign(base, {
 		length: str.length,
 		chars: str,
-		type: 'OBJ_STRING'
-	};
+	});
 }
 
 /** 

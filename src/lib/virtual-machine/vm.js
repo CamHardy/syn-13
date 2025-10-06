@@ -2,6 +2,7 @@ import { Chunk, OpCode } from './chunk.js';
 import { disassembleInstruction } from './debug.js';
 import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
+import { freeObjects } from './memory.js';
 import { AS_STRING, IS_STRING, takeString } from './object.js';
 import { 
 	BOOL_VAL, 
@@ -15,6 +16,7 @@ import {
 	IS_NUMBER,
 	valuesEqual } from './value.js';
 /** @import { Value } from './value.js' */
+/** @import { Obj } from './object.js' */
 
 /** @type { number } */
 const STACK_MAX = 256;
@@ -35,10 +37,17 @@ export class VM {
 	static stack = new Array(STACK_MAX);
 	/** @type { number } */
 	static stackTop = 0;
+	/** @type { Obj | null} */
+	static objects;
 
 
 	constructor() {
 		VM.resetStack();
+		VM.objects = null;
+	}
+
+	static freeVM() {
+		freeObjects();
 	}
 
 	/** @param { string } source */

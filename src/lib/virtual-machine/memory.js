@@ -1,3 +1,6 @@
+import { VM } from './vm.js';
+/** @import { Obj, ObjString } from "./object.js" */
+
 /** @param { number } capacity */
 export function growCapacity(capacity) {
 	return (capacity < 8) ? 8 : capacity * 2;
@@ -11,4 +14,8 @@ export function growArray(array, capacity) {
 	const newCode = new Uint8Array(capacity);
 	newCode.set(array);
 	return newCode;
+}
+
+export function freeObjects() {
+	this.objects = null;
 }
