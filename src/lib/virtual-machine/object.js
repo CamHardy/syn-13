@@ -39,11 +39,14 @@ export function allocateObject(type) {
 export function allocateString(str, hash) {
 	let base = allocateObject('OBJ_STRING');
 	
-	return  Object.assign(base, {
+	let string = Object.assign(base, {
 		length: str.length,
 		chars: str,
 		hash
 	});
+
+	VM.strings.set(str, string);
+	return string;
 }
 
 /** @param { string } key */
@@ -62,8 +65,10 @@ function hashString(key) {
  * @return { ObjString }
  */
 export function takeString(str) {
-	let hash = hashString(str);
-	return allocateString(str, hash);
+	let interned = VM.strings.get(str);
+	if (interned) return interned;
+
+	return allocateString(str, hashString(str));
 }
 
 /** 
@@ -71,15 +76,17 @@ export function takeString(str) {
  * @return { ObjString }
  */
 export function copyString(str) {
-	let hash = hashString(str);
-	return allocateString(str, hash);
+	let interned = VM.strings.get(str);
+	if (interned) return interned;
+
+	return allocateString(str, hashString(str));
 }
 
 /** @param { Value } value */
 export function printObject(value) {
 	switch (OBJ_TYPE(value)) {
 		case 'OBJ_STRING':
-			console.log(AS_CSTRING(value).chars);
+			console.log(AS_CSTRING(value));
 			break;
 	}
 }

@@ -3,19 +3,19 @@
 
 /**
  * @typedef { Object } Entry
- * @property { ObjString } key
+ * @property { string } key
  * @property { Value } value
  */
 
 export class Table {
     constructor() {
-      /** @type { Map<ObjString, Value> } */
+      /** @type { Map<string, ObjString> } */
       this.entries = new Map();
     }
 
 		/**
-		 * @param { ObjString } key 
-		 * @param { Value } value 
+		 * @param { string } key 
+		 * @param { ObjString } value 
 		 * @returns { boolean }
 		 */
     set(key, value) {
@@ -24,12 +24,12 @@ export class Table {
       return isNew;
     }
 
-		/** @param { ObjString } key */
+		/** @param { string } key */
     get(key) {
       return this.entries.get(key);
     }
 
-		/** @param { ObjString } key */
+		/** @param { string } key */
     delete(key) {
       return this.entries.delete(key);
     }

@@ -3,6 +3,7 @@ import { disassembleInstruction } from './debug.js';
 import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
 import { freeObjects } from './memory.js';
+import { Table } from './table.js';
 import { AS_STRING, IS_STRING, takeString } from './object.js';
 import { 
 	BOOL_VAL, 
@@ -37,6 +38,8 @@ export class VM {
 	static stack = new Array(STACK_MAX);
 	/** @type { number } */
 	static stackTop = 0;
+	/** @type { Table } */
+	static strings;
 	/** @type { Obj | null} */
 	static objects;
 
@@ -44,9 +47,11 @@ export class VM {
 	constructor() {
 		VM.resetStack();
 		VM.objects = null;
+		VM.strings = new Table();
 	}
 
 	static freeVM() {
+		VM.strings.free();
 		freeObjects();
 	}
 
