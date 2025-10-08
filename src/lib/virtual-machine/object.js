@@ -11,7 +11,11 @@ import { VM } from './vm.js';
  */
 
 /** 
- * @typedef { Obj & { length: number, chars: string} } ObjString
+ * @typedef { Obj & { 
+ * 	length: number, 
+ * 	chars: string,
+ * 	hash: number
+ * } } ObjString
  */
 
 /**
@@ -29,23 +33,37 @@ export function allocateObject(type) {
 
 /** 
  * @param { string } str 
+ * @param { number } hash
  * @return { ObjString }
  */
-export function allocateString(str) {
+export function allocateString(str, hash) {
 	let base = allocateObject('OBJ_STRING');
 	
 	return  Object.assign(base, {
 		length: str.length,
 		chars: str,
+		hash
 	});
 }
 
+/** @param { string } key */
+function hashString(key) {
+	let hash = 2166136261;
+	for (let i = 0; i < key.length; i++) {
+		hash ^= key.charCodeAt(i);
+		hash *= 16777619;
+	}
+
+	return hash;
+}
+
 /** 
- * @param { string } chars  
+ * @param { string } str  
  * @return { ObjString }
  */
-export function takeString(chars) {
-	return allocateString(chars);
+export function takeString(str) {
+	let hash = hashString(str);
+	return allocateString(str, hash);
 }
 
 /** 
@@ -53,7 +71,8 @@ export function takeString(chars) {
  * @return { ObjString }
  */
 export function copyString(str) {
-	return allocateString(str);
+	let hash = hashString(str);
+	return allocateString(str, hash);
 }
 
 /** @param { Value } value */
