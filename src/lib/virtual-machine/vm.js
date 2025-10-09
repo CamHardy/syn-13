@@ -15,7 +15,8 @@ import {
 	IS_BOOL,
 	IS_NIL,
 	IS_NUMBER,
-	valuesEqual } from './value.js';
+	valuesEqual,
+	printValue } from './value.js';
 /** @import { Value } from './value.js' */
 /** @import { Obj } from './object.js' */
 
@@ -31,11 +32,11 @@ export const InterpretResult = Object.freeze({
 
 export class VM {
 	/** @type { Chunk } */
-	static chunk = new Chunk();
+	static chunk;
 	/** @type { number } */
-	static ip = 0;
+	static ip;
 	/** @type { Value[] } */
-	static stack = new Array(STACK_MAX);
+	static stack;
 	/** @type { number } */
 	static stackTop = 0;
 	/** @type { Table } */
@@ -46,6 +47,9 @@ export class VM {
 
 	constructor() {
 		VM.resetStack();
+		VM.chunk = new Chunk();
+		VM.ip = 0;
+		VM.stack = new Array(STACK_MAX);
 		VM.objects = null;
 		VM.strings = new Table();
 	}
@@ -121,7 +125,7 @@ export class VM {
 					case OpCode.OP_LESS:
 						BINARY_OP((a, b) => a < b); break;
 					case OpCode.OP_ADD:
-						if (!IS_STRING(this.peek(0)) && IS_STRING(this.peek(1))) {
+						if (IS_STRING(this.peek(0)) && IS_STRING(this.peek(1))) {
 							this.concatenate();
 						} else if (IS_NUMBER(this.peek(0)) && IS_NUMBER(this.peek(1))) {
 							let b = AS_NUMBER(this.pop());
@@ -130,7 +134,7 @@ export class VM {
 						} else {
 							VM.runtimeError('Operands must be two numbers or two strings.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
-						}
+						} break;
 					case OpCode.OP_SUBTRACT:
 						BINARY_OP((a, b) => a - b); break;
 					case OpCode.OP_MULTIPLY:
@@ -144,9 +148,11 @@ export class VM {
 							VM.runtimeError('Operand must be a number.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
-						this.push(this.pop()); break;
+						this.push(NUMBER_VAL(-AS_NUMBER(this.pop()))); break;
+					case OpCode.OP_PRINT:
+						printValue(this.pop());
+						break;
 					case OpCode.OP_RETURN:
-						console.log(this.pop());
 						return InterpretResult.INTERPRET_OK;
 				}
 			}

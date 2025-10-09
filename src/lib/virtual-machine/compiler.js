@@ -62,8 +62,11 @@ export function compile(source, chunk) {
 	parser.panicMode = false;
 
 	advance();
-	expression();
-	consume('TOKEN_EOF', 'Expected end of expression.');
+	
+	while (!match('TOKEN_EOF')) {
+		declaration();
+	}
+
 	endCompiler();
 
 	return !parser.hadError;
@@ -91,6 +94,24 @@ function consume(type, message) {
 	}
 
 	errorAtCurrent(message);
+}
+
+/** 
+ * @param { TokenType } type 
+ * @returns { boolean } 
+ */
+function check(type) {
+	return parser.current.type === type;
+}
+
+/** 
+ * @param { TokenType } type 
+ * @returns { boolean } 
+ */
+function match(type) {
+	if (!check(type)) return false;
+	advance();
+	return true;
 }
 
 function endCompiler() {
@@ -232,6 +253,22 @@ function getRule(type) {
 
 function expression() {
 	parsePrecedence(Precedence.PREC_ASSIGNMENT);
+}
+
+function printStatement() {
+	expression();
+	consume('TOKEN_SEMICOLON', "Expected ';' after value.");
+	emitByte(OpCode.OP_PRINT);
+}
+
+function declaration() {
+	statement();
+}
+
+function statement() {
+	if (match('TOKEN_PRINT')) {
+		printStatement();
+	}
 }
 
 /** @param { number } byte */

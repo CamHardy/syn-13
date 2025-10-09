@@ -111,19 +111,19 @@ export class ValueArray {
 		this.values[this.count] = value;
 		this.count++;
 	}
+}
 
-	/** @param { Value } value */
-	print(value) {
-		switch (value.type) {
-			case 'VAL_BOOL':
-				console.log(AS_BOOL(value) ? 'true' : 'false'); break;
-			case 'VAL_NIL':
-				console.log('nil'); break;
-			case 'VAL_NUMBER':
-				console.log(AS_NUMBER(value)); break;
-			case 'VAL_OBJ':
-				printObject(value); break;
-		}
+/** @param { Value } value */
+export function printValue(value) {
+	switch (value.type) {
+		case 'VAL_BOOL':
+			console.log(AS_BOOL(value) ? 'true' : 'false'); break;
+		case 'VAL_NIL':
+			console.log('nil'); break;
+		case 'VAL_NUMBER':
+			console.log(AS_NUMBER(value)); break;
+		case 'VAL_OBJ':
+			printObject(value); break;
 	}
 }
 
