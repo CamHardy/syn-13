@@ -116,6 +116,8 @@ export class VM {
 						VM.push(BOOL_VAL(true)); break;
 					case OpCode.OP_FALSE:
 						VM.push(BOOL_VAL(false)); break;
+					case OpCode.OP_POP:
+						this.pop(); break;
 					case OpCode.OP_EQUAL:
 						let b = this.pop();
 						let a = this.pop();
