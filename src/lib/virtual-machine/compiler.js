@@ -167,6 +167,16 @@ function string() {
 	emitConstant(OBJ_VAL(copyString(parser.previous.lexeme.slice(1, -1))));
 }
 
+/** @param { Token } name */
+function namedVariable(name) {
+	let arg = identifierConstant(name);
+	emitBytes(OpCode.OP_GET_GLOBAL, arg);
+}
+
+function variable() {
+	namedVariable(parser.previous);
+}
+
 function unary() {
 	let operatorType = parser.previous.type;
 
@@ -202,7 +212,7 @@ let rules = {
 	['TOKEN_GREATER_EQUAL']: 	{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
 	['TOKEN_LESS']: 					{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
 	['TOKEN_LESS_EQUAL']: 		{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
-	['TOKEN_IDENTIFIER']: 		{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
+	['TOKEN_IDENTIFIER']: 		{ prefix: variable, 		infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_STRING']: 				{ prefix: string, 	infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_NUMBER']: 				{ prefix: number, 	infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_AND']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },

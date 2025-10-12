@@ -18,7 +18,7 @@ import {
 	valuesEqual,
 	printValue } from './value.js';
 /** @import { Value } from './value.js' */
-/** @import { Obj } from './object.js' */
+/** @import { Obj, ObjString } from './object.js' */
 
 /** @type { number } */
 const STACK_MAX = 256;
@@ -39,9 +39,9 @@ export class VM {
 	static stack;
 	/** @type { number } */
 	static stackTop = 0;
-	/** @type { Table } */
+	/** @type { Table<ObjString, Value> } */
 	static globals;
-	/** @type { Table } */
+	/** @type { Table<string, ObjString> } */
 	static strings;
 	/** @type { Obj | null} */
 	static objects;
@@ -123,9 +123,21 @@ export class VM {
 						VM.push(BOOL_VAL(false)); break;
 					case OpCode.OP_POP:
 						this.pop(); break;
+					case OpCode.OP_GET_GLOBAL: {
+						let name = READ_STRING();
+						let value = VM.globals.get(name);
+
+						if (value === undefined) {
+							VM.runtimeError(`Undefined variable '${name.chars}'.`);
+							return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						}
+
+						VM.push(value); 
+						break;
+					}
 					case OpCode.OP_DEFINE_GLOBAL: {
 						let name = READ_STRING();
-						VM.globals.set(name, AS_STRING(this.peek(0)));
+						VM.globals.set(name, this.peek(0));
 						this.pop(); 
 						break;
 					}
@@ -219,7 +231,7 @@ export class VM {
 		let b = AS_STRING(this.pop());
 		let a = AS_STRING(this.pop());
 		
-		let result = takeString(a + b);
+		let result = takeString(a.chars + b.chars);
 
 		this.push(OBJ_VAL(result));
 	}

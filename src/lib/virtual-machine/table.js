@@ -1,21 +1,13 @@
-/** @import { Value } from "./value.js" */
-/** @import { ObjString } from "./object.js" */
-
-/**
- * @typedef { Object } Entry
- * @property { string } key
- * @property { Value } value
- */
-
+/** @template K, V */
 export class Table {
     constructor() {
-      /** @type { Map<string, ObjString> } */
+      /** @type { Map<K, V> } */
       this.entries = new Map();
     }
 
 		/**
-		 * @param { string } key 
-		 * @param { ObjString } value 
+		 * @param { K } key 
+		 * @param { V } value 
 		 * @returns { boolean }
 		 */
     set(key, value) {
@@ -24,17 +16,17 @@ export class Table {
       return isNew;
     }
 
-		/** @param { string } key */
+		/** @param { K } key */
     get(key) {
       return this.entries.get(key);
     }
 
-		/** @param { string } key */
+		/** @param { K } key */
     delete(key) {
       return this.entries.delete(key);
     }
 
-		/** @param { Table } from */
+		/** @param { Table<K, V> } from */
     addAll(from) {
       for (const [k, v] of from.entries) this.set(k, v);
     }

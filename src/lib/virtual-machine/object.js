@@ -103,8 +103,11 @@ export function OBJ_TYPE(value) { return AS_OBJ(value).type }
  */
 export function IS_STRING(value) { return isObjType(value, 'OBJ_STRING') }
 
-/** @param { Value } value */
-export function AS_STRING(value) { return AS_OBJ(value).obj }
+/** 
+ * @param { Value } value 
+ * @return { ObjString }
+ */
+export function AS_STRING(value) { return AS_OBJ(value) }
 
 /** @param { Value } value */
 export function AS_CSTRING(value) { return AS_STRING(value).chars }

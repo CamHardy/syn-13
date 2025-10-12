@@ -140,7 +140,7 @@ export function valuesEqual(a, b) {
 		case 'VAL_OBJ': {
 			let aString = AS_STRING(a);
 			let bString = AS_STRING(b);
-			return aString.length === bString && aString.chars === bString.chars;
+			return aString.length === bString.length && aString.chars === bString.chars;
 		}
 		default: return false; // Unreachable.
 	}
