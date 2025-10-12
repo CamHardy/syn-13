@@ -9,17 +9,18 @@ export const OpCode = Object.freeze({
 	OP_TRUE: 0x03,
 	OP_FALSE: 0x04,
 	OP_POP: 0x05,
-	OP_EQUAL: 0x06,
-	OP_GREATER: 0x07,
-	OP_LESS: 0x08,
-	OP_ADD: 0x09,
-	OP_SUBTRACT: 0x0a,
-	OP_MULTIPLY: 0x0b,
-	OP_DIVIDE: 0x0c,
-	OP_NOT: 0x0d,
-	OP_NEGATE: 0x0e,
-	OP_PRINT: 0x0f,
-	OP_RETURN: 0x10
+	OP_DEFINE_GLOBAL: 0x06,
+	OP_EQUAL: 0x07,
+	OP_GREATER: 0x08,
+	OP_LESS: 0x09,
+	OP_ADD: 0x0a,
+	OP_SUBTRACT: 0x0b,
+	OP_MULTIPLY: 0x0c,
+	OP_DIVIDE: 0x0d,
+	OP_NOT: 0x0e,
+	OP_NEGATE: 0x0f,
+	OP_PRINT: 0x10,
+	OP_RETURN: 0x11
 });
 
 export class Chunk {

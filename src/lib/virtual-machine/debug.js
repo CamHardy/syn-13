@@ -36,6 +36,8 @@ export function disassembleInstruction(chunk, offset) {
 			return simpleInstruction('OP_FALSE', offset, output);
 		case OpCode.OP_POP:
 			return simpleInstruction('OP_POP', offset, output);
+		case OpCode.OP_DEFINE_GLOBAL:
+			return constantInstruction('OP_DEFINE_GLOBAL', chunk, offset, output);
 		case OpCode.OP_EQUAL:
 			return simpleInstruction('OP_EQUAL', offset, output);
 		case OpCode.OP_GREATER:

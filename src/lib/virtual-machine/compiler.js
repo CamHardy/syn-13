@@ -243,6 +243,29 @@ function parsePrecedence(precedence) {
 	}
 }
 
+/**
+ * @param { Token } name
+ * @returns 
+ */
+function identifierConstant(name) {
+	return makeConstant(OBJ_VAL(copyString(name.lexeme)));
+}
+
+/** 
+ * @param { string } errorMessage 
+ * @returns { number } 
+ */
+function parseVariable(errorMessage) {
+	consume('TOKEN_IDENTIFIER', errorMessage);
+
+	return identifierConstant(parser.previous);
+}
+
+/** @param { number } global */
+function defineVariable(global) {
+	emitBytes(OpCode.OP_DEFINE_GLOBAL, global);
+}
+
 /** 
  * @param { TokenType } type 
  * @returns { ParseRule }
@@ -253,6 +276,20 @@ function getRule(type) {
 
 function expression() {
 	parsePrecedence(Precedence.PREC_ASSIGNMENT);
+}
+
+function varDeclaration() {
+	let global = parseVariable('Expected variable name.');
+
+	if (match('TOKEN_EQUAL')) {
+		expression();
+	} else {
+		emitByte(OpCode.OP_NIL);
+	}
+
+	consume('TOKEN_SEMICOLON', "Expected ';' after variable declaration.");
+
+	defineVariable(global);
 }
 
 function expressionStatement() {
@@ -291,7 +328,11 @@ function synchronize() {
 }
 
 function declaration() {
-	statement();
+	if (match('TOKEN_VAR')) {
+		varDeclaration();
+	} else {
+		statement();
+	}
 
 	if (parser.panicMode) synchronize();
 }

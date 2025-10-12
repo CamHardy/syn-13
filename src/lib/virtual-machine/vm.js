@@ -40,6 +40,8 @@ export class VM {
 	/** @type { number } */
 	static stackTop = 0;
 	/** @type { Table } */
+	static globals;
+	/** @type { Table } */
 	static strings;
 	/** @type { Obj | null} */
 	static objects;
@@ -51,10 +53,12 @@ export class VM {
 		VM.ip = 0;
 		VM.stack = new Array(STACK_MAX);
 		VM.objects = null;
+		VM.globals = new Table();
 		VM.strings = new Table();
 	}
 
 	static freeVM() {
+		VM.globals.free();
 		VM.strings.free();
 		freeObjects();
 	}
@@ -82,6 +86,7 @@ export class VM {
 	static run() {
 		const READ_BYTE = () => this.chunk.code[this.ip++];
 		const READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
+		const READ_STRING = () => AS_STRING(READ_CONSTANT());
 		/** @param { (a: number, b: number) => any } op */
 		const BINARY_OP = (op) => {
 			if (!IS_NUMBER(this.peek(0)) || !IS_NUMBER(this.peek(1))) {
@@ -118,6 +123,12 @@ export class VM {
 						VM.push(BOOL_VAL(false)); break;
 					case OpCode.OP_POP:
 						this.pop(); break;
+					case OpCode.OP_DEFINE_GLOBAL: {
+						let name = READ_STRING();
+						VM.globals.set(name, AS_STRING(this.peek(0)));
+						this.pop(); 
+						break;
+					}
 					case OpCode.OP_EQUAL:
 						let b = this.pop();
 						let a = this.pop();
@@ -136,7 +147,8 @@ export class VM {
 						} else {
 							VM.runtimeError('Operands must be two numbers or two strings.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
-						} break;
+						} 
+						break;
 					case OpCode.OP_SUBTRACT:
 						BINARY_OP((a, b) => a - b); break;
 					case OpCode.OP_MULTIPLY:
@@ -150,7 +162,8 @@ export class VM {
 							VM.runtimeError('Operand must be a number.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
-						this.push(NUMBER_VAL(-AS_NUMBER(this.pop()))); break;
+						this.push(NUMBER_VAL(-AS_NUMBER(this.pop()))); 
+						break;
 					case OpCode.OP_PRINT:
 						printValue(this.pop());
 						break;
