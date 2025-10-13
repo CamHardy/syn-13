@@ -31,7 +31,7 @@ const Precedence = Object.freeze({
 	PREC_PRIMARY: 10
 });
 
-/** @typedef { (() => void) | null } ParseFn } */
+/** @typedef { ((canAssign: boolean) => void) | null } ParseFn } */
 
 /**
  * @typedef { Object } ParseRule
@@ -124,7 +124,8 @@ function endCompiler() {
 	}
 }
 
-function binary() {
+/** @param { boolean } canAssign */
+function binary(canAssign) {
 	let operatorType = parser.previous.type;
 	let rule = getRule(operatorType);
 	parsePrecedence(rule.precedence + 1);
@@ -144,7 +145,8 @@ function binary() {
 	}
 }
 
-function literal() {
+/** @param { boolean } canAssign */
+function literal(canAssign) {
 	switch (parser.previous.type) {
 		case 'TOKEN_FALSE': emitByte(OpCode.OP_FALSE); break;
 		case 'TOKEN_NIL': emitByte(OpCode.OP_NIL); break;
@@ -153,31 +155,45 @@ function literal() {
 	}
 }
 
-function grouping() {
+/** @param { boolean } canAssign */
+function grouping(canAssign) {
 	expression();
 	consume('TOKEN_RIGHT_PAREN', "Expected ')' after expression.");
 }
 
-function number() {
+/** @param { boolean } canAssign */
+function number(canAssign) {
 	let value = parseFloat(parser.previous.lexeme);
 	emitConstant(NUMBER_VAL(value));
 }
 
-function string() {
+/** @param { boolean } canAssign */
+function string(canAssign) {
 	emitConstant(OBJ_VAL(copyString(parser.previous.lexeme.slice(1, -1))));
 }
 
-/** @param { Token } name */
-function namedVariable(name) {
+/** 
+ * @param { Token } name 
+ * @param { boolean } canAssign
+ */
+function namedVariable(name, canAssign) {
 	let arg = identifierConstant(name);
-	emitBytes(OpCode.OP_GET_GLOBAL, arg);
+
+	if (canAssign && match('TOKEN_EQUAL')) {
+		expression();
+		emitBytes(OpCode.OP_SET_GLOBAL, arg);
+	} else {
+		emitBytes(OpCode.OP_GET_GLOBAL, arg);
+	}
 }
 
-function variable() {
-	namedVariable(parser.previous);
+/** @param { boolean } canAssign */
+function variable(canAssign) {
+	namedVariable(parser.previous, canAssign);
 }
 
-function unary() {
+/** @param { boolean } canAssign */
+function unary(canAssign) {
 	let operatorType = parser.previous.type;
 
 	// Compile the operand.
@@ -244,12 +260,17 @@ function parsePrecedence(precedence) {
 		return;
 	}
 
-	prefixRule();
+	let canAssign = precedence <= Precedence.PREC_ASSIGNMENT;
+	prefixRule(canAssign);
 
 	while (precedence <= getRule(parser.current.type).precedence) {
 		advance();
 		let infixRule = getRule(parser.previous.type).infix ?? (() => {});
-		infixRule();
+		infixRule(canAssign);
+	}
+
+	if (canAssign && match('TOKEN_EQUAL')) {
+		error("Invalid assignment target.");
 	}
 }
 

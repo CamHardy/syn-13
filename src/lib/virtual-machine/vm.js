@@ -141,15 +141,27 @@ export class VM {
 						this.pop(); 
 						break;
 					}
-					case OpCode.OP_EQUAL:
+					case OpCode.OP_SET_GLOBAL: {
+						let name = READ_STRING();
+
+						if (VM.globals.set(name, this.peek(0))) {
+							VM.globals.delete(name);
+							VM.runtimeError(`Undefined variable '${name.chars}'.`);
+
+							return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						}
+						break;
+					}
+					case OpCode.OP_EQUAL: {
 						let b = this.pop();
 						let a = this.pop();
 						this.push(BOOL_VAL(valuesEqual(a, b))); break;
+					}
 					case OpCode.OP_GREATER:
 						BINARY_OP((a, b) => a > b); break;
 					case OpCode.OP_LESS:
 						BINARY_OP((a, b) => a < b); break;
-					case OpCode.OP_ADD:
+					case OpCode.OP_ADD: {
 						if (IS_STRING(this.peek(0)) && IS_STRING(this.peek(1))) {
 							this.concatenate();
 						} else if (IS_NUMBER(this.peek(0)) && IS_NUMBER(this.peek(1))) {
@@ -161,6 +173,7 @@ export class VM {
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						} 
 						break;
+					}
 					case OpCode.OP_SUBTRACT:
 						BINARY_OP((a, b) => a - b); break;
 					case OpCode.OP_MULTIPLY:
@@ -169,16 +182,16 @@ export class VM {
 						BINARY_OP((a, b) => a / b); break;
 					case OpCode.OP_NOT:
 						this.push(BOOL_VAL(this.isFalsey(this.pop()))); break;
-					case OpCode.OP_NEGATE:
+					case OpCode.OP_NEGATE: {
 						if (!IS_NUMBER(this.peek(0))) {
 							VM.runtimeError('Operand must be a number.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
 						this.push(NUMBER_VAL(-AS_NUMBER(this.pop()))); 
 						break;
+					}
 					case OpCode.OP_PRINT:
-						printValue(this.pop());
-						break;
+						printValue(this.pop()); break;
 					case OpCode.OP_RETURN:
 						return InterpretResult.INTERPRET_OK;
 				}
