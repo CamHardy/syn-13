@@ -40,7 +40,21 @@ const Precedence = Object.freeze({
  * @property { Precedence } precedence
  */
 
+/**
+ * @typedef { Object } Local
+ * @property { string } name
+ * @property { number } depth
+ */
+
+/** 
+ * @typedef { Object } Compiler
+ * @property { Local[] } locals
+ * @property { number } localCount
+ * @property { number } scopeDepth
+ */
+
 let parser = /** @type { Parser } */ ({});
+let current = /** @type { Compiler } */ ({});
 let scanner = /** @type { Scanner } */ ({});
 let compilingChunk = /** @type { Chunk } */ ({});
 
@@ -56,6 +70,8 @@ function currentChunk() {
  */
 export function compile(source, chunk) {
 	scanner = new Scanner(source);
+	let compiler = /** @type { Compiler } */ ({});
+	initCompiler(compiler);
 	compilingChunk = chunk;
 
 	parser.hadError = false;
@@ -122,6 +138,14 @@ function endCompiler() {
 			disassembleChunk(currentChunk(), 'code');
 		}
 	}
+}
+
+function beginScope() {
+	current.scopeDepth++;
+}
+
+function endScope() {
+	current.scopeDepth--;
 }
 
 /** @param { boolean } canAssign */
@@ -309,6 +333,14 @@ function expression() {
 	parsePrecedence(Precedence.PREC_ASSIGNMENT);
 }
 
+function block() {
+	while (!check('TOKEN_RIGHT_BRACE') && !check('TOKEN_EOF')) {
+		declaration();
+	}
+
+	consume('TOKEN_RIGHT_BRACE', "Expected '}' after block.");
+}
+
 function varDeclaration() {
 	let global = parseVariable('Expected variable name.');
 
@@ -371,6 +403,10 @@ function declaration() {
 function statement() {
 	if (match('TOKEN_PRINT')) {
 		printStatement();
+	} else if (match('TOKEN_LEFT_BRACE')) {
+		beginScope();
+		block();
+		endScope();
 	} else {
 		expressionStatement();
 	}
@@ -408,6 +444,14 @@ function makeConstant(value) {
 /** @param { Value } value */
 function emitConstant(value) {
 	emitBytes(OpCode.OP_CONSTANT, makeConstant(value));
+}
+
+/** @param { Compiler } compiler */
+function initCompiler(compiler) {
+	compiler.localCount = 0;
+	compiler.scopeDepth = 0;
+
+	current = compiler;
 }
 
 /** @param { string } message */
