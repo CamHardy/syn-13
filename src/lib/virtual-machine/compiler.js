@@ -146,6 +146,11 @@ function beginScope() {
 
 function endScope() {
 	current.scopeDepth--;
+
+	while (current.localCount > 0 && current.locals[current.localCount - 1].depth > current.scopeDepth) {
+		emitByte(OpCode.OP_POP);
+		current.localCount--;
+	}
 }
 
 /** @param { boolean } canAssign */
@@ -306,6 +311,42 @@ function identifierConstant(name) {
 	return makeConstant(OBJ_VAL(copyString(name.lexeme)));
 }
 
+/**
+ * @param { string } a 
+ * @param { string } b 
+ * @returns { boolean }
+ */
+function identifiersEqual(a, b) {
+	return a === b;
+}
+
+/** @param { Token } name */
+function addLocal(name) {
+	if (current.localCount === 255) {
+		error("Too many local variables in function.");
+		return;
+	}
+
+	let local = current.locals[current.localCount++];
+	local.name = name.lexeme;
+	local.depth = current.scopeDepth;
+}
+
+function declareVariable() {
+	if (current.scopeDepth === 0) return;
+
+	let name = parser.previous;
+	for (let i = current.localCount - 1; i >= 0; i--) {
+		let local = current.locals[i];
+		if (local.depth !== -1 && local.depth < current.scopeDepth) break;
+
+		if (identifiersEqual(name.lexeme, local.name)) {
+			error("Already variable with this name in this scope.");
+		}
+	}
+	addLocal(name);
+}
+
 /** 
  * @param { string } errorMessage 
  * @returns { number } 
@@ -313,11 +354,16 @@ function identifierConstant(name) {
 function parseVariable(errorMessage) {
 	consume('TOKEN_IDENTIFIER', errorMessage);
 
+	declareVariable();
+	if (current.scopeDepth > 0) return 0;
+
 	return identifierConstant(parser.previous);
 }
 
 /** @param { number } global */
 function defineVariable(global) {
+	if (current.scopeDepth > 0) return;
+
 	emitBytes(OpCode.OP_DEFINE_GLOBAL, global);
 }
 
