@@ -206,13 +206,23 @@ function string(canAssign) {
  * @param { boolean } canAssign
  */
 function namedVariable(name, canAssign) {
-	let arg = identifierConstant(name);
+	let getOp, setOp;
+	let arg = resolveLocal(current, name);
+
+	if (arg !== -1) {
+		getOp = OpCode.OP_GET_LOCAL;
+		setOp = OpCode.OP_SET_LOCAL;
+	} else {
+		arg = identifierConstant(name);
+		getOp = OpCode.OP_GET_GLOBAL;
+		setOp = OpCode.OP_SET_GLOBAL;
+	}
 
 	if (canAssign && match('TOKEN_EQUAL')) {
 		expression();
-		emitBytes(OpCode.OP_SET_GLOBAL, arg);
+		emitBytes(setOp, arg);
 	} else {
-		emitBytes(OpCode.OP_GET_GLOBAL, arg);
+		emitBytes(getOp, arg);
 	}
 }
 
@@ -320,6 +330,24 @@ function identifiersEqual(a, b) {
 	return a === b;
 }
 
+/**
+ * @param { Compiler } compiler 
+ * @param { Token } name 
+ */
+function resolveLocal(compiler, name) {
+	for (let i = compiler.localCount - 1; i >= 0; i--) {
+		let local = compiler.locals[i];
+		if (identifiersEqual(name.lexeme, local.name)) {
+			if (local.depth === -1) {
+				error("Can't read local variable in its own initializer.");
+			}
+			return i;
+		}
+	}
+
+	return -1;
+}
+
 /** @param { Token } name */
 function addLocal(name) {
 	if (current.localCount === 255) {
@@ -329,7 +357,7 @@ function addLocal(name) {
 
 	let local = current.locals[current.localCount++];
 	local.name = name.lexeme;
-	local.depth = current.scopeDepth;
+	local.depth = -1;
 }
 
 function declareVariable() {
@@ -360,9 +388,16 @@ function parseVariable(errorMessage) {
 	return identifierConstant(parser.previous);
 }
 
+function markInitialized() {
+	current.locals[current.localCount - 1].depth = current.scopeDepth;
+}
+
 /** @param { number } global */
 function defineVariable(global) {
-	if (current.scopeDepth > 0) return;
+	if (current.scopeDepth > 0) {
+		markInitialized();
+		return;
+	}
 
 	emitBytes(OpCode.OP_DEFINE_GLOBAL, global);
 }

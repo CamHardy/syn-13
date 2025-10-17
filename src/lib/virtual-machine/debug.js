@@ -36,6 +36,10 @@ export function disassembleInstruction(chunk, offset) {
 			return simpleInstruction('OP_FALSE', offset, output);
 		case OpCode.OP_POP:
 			return simpleInstruction('OP_POP', offset, output);
+		case OpCode.OP_GET_LOCAL:
+			return byteInstruction('OP_GET_LOCAL', chunk, offset, output);
+		case OpCode.OP_SET_LOCAL:
+			return byteInstruction('OP_SET_LOCAL', chunk, offset, output);
 		case OpCode.OP_GET_GLOBAL:
 			return constantInstruction('OP_GET_GLOBAL', chunk, offset, output);
 		case OpCode.OP_DEFINE_GLOBAL:
@@ -79,6 +83,20 @@ function simpleInstruction(name, offset, output) {
 	console.log(`${output} ${name}`);
 
 	return offset + 1;
+}
+
+/**
+ * @param { string } name 
+ * @param { Chunk } chunk 
+ * @param { number } offset 
+ * @param { string } output 
+ */
+function byteInstruction(name, chunk, offset, output) {
+	let slot = chunk.code[offset + 1];
+	name = name.padEnd(16);
+	console.log(`${output} ${name} ${slot}`);
+
+	return offset + 2;
 }
 
 /**

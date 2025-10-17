@@ -123,6 +123,16 @@ export class VM {
 						VM.push(BOOL_VAL(false)); break;
 					case OpCode.OP_POP:
 						this.pop(); break;
+					case OpCode.OP_GET_LOCAL: {
+						let slot = READ_BYTE();
+						VM.push(this.stack[slot]); 
+						break;
+					}
+					case OpCode.OP_SET_LOCAL: {
+						let slot = READ_BYTE();
+						this.stack[slot] = this.peek(0); 
+						break;
+					}
 					case OpCode.OP_GET_GLOBAL: {
 						let name = READ_STRING();
 						let value = VM.globals.get(name);
