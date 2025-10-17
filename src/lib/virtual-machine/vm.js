@@ -86,6 +86,10 @@ export class VM {
 	static run() {
 		const READ_BYTE = () => this.chunk.code[this.ip++];
 		const READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
+		const READ_SHORT = () => {
+			this.ip += 2;
+			return (this.chunk.code[this.ip - 2] << 8) | this.chunk.code[this.ip - 1];
+		};
 		const READ_STRING = () => AS_STRING(READ_CONSTANT());
 		/** @param { (a: number, b: number) => any } op */
 		const BINARY_OP = (op) => {
@@ -202,6 +206,11 @@ export class VM {
 					}
 					case OpCode.OP_PRINT:
 						printValue(this.pop()); break;
+					case OpCode.OP_JUMP_IF_FALSE: {
+						let offset = READ_SHORT();
+						if (this.isFalsey(this.peek(0))) this.ip += offset;
+						break;
+					}
 					case OpCode.OP_RETURN:
 						return InterpretResult.INTERPRET_OK;
 				}

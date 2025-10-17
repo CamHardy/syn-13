@@ -442,6 +442,17 @@ function expressionStatement() {
 	emitByte(OpCode.OP_POP);
 }
 
+function ifStatement() {
+	consume('TOKEN_LEFT_PAREN', "Expected '(' after 'if'.");
+	expression();
+	consume('TOKEN_RIGHT_PAREN', "Expected ')' after condition.");
+
+	let thenJump = emitJump(OpCode.OP_JUMP_IF_FALSE);
+	statement();
+
+	patchJump(thenJump);
+}
+
 function printStatement() {
 	expression();
 	consume('TOKEN_SEMICOLON', "Expected ';' after value.");
@@ -484,6 +495,8 @@ function declaration() {
 function statement() {
 	if (match('TOKEN_PRINT')) {
 		printStatement();
+	} else if (match('TOKEN_IF')) {
+		ifStatement();
 	} else if (match('TOKEN_LEFT_BRACE')) {
 		beginScope();
 		block();
@@ -507,6 +520,18 @@ function emitBytes(byte1, byte2) {
 	emitByte(byte2);
 }
 
+/** 
+ * @param { number } instruction 
+ * @returns { number } 
+ */
+function emitJump(instruction) {
+	emitByte(instruction);
+	emitByte(0xff);
+	emitByte(0xff);
+
+	return currentChunk().count - 2;
+}
+
 function emitReturn() {
 	emitByte(OpCode.OP_RETURN);
 }
@@ -525,6 +550,19 @@ function makeConstant(value) {
 /** @param { Value } value */
 function emitConstant(value) {
 	emitBytes(OpCode.OP_CONSTANT, makeConstant(value));
+}
+
+/** @param { number } offset */
+function patchJump(offset) {
+	// -2 to adjust for the bytecode for the jump offset itself.
+	let jump = currentChunk().count - offset - 2;
+
+	if (jump > 65535) {
+		errorAtCurrent('Too much code to jump over.');
+	}
+
+	currentChunk().code[offset] = (jump >> 8) & 0xff;
+	currentChunk().code[offset + 1] = jump & 0xff;
 }
 
 /** @param { Compiler } compiler */
