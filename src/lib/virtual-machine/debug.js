@@ -66,6 +66,10 @@ export function disassembleInstruction(chunk, offset) {
 			return simpleInstruction('OP_NEGATE', offset, output);
 		case OpCode.OP_PRINT:
 			return simpleInstruction('OP_PRINT', offset, output);
+		case OpCode.OP_JUMP:
+			return jumpInstruction('OP_JUMP', 1, chunk, offset, output);
+		case OpCode.OP_JUMP_IF_FALSE:
+			return jumpInstruction('OP_JUMP_IF_FALSE', 1, chunk, offset, output);
 		case OpCode.OP_RETURN:
 			return simpleInstruction('OP_RETURN', offset, output);
 		default:
@@ -97,6 +101,22 @@ function byteInstruction(name, chunk, offset, output) {
 	console.log(`${output} ${name} ${slot}`);
 
 	return offset + 2;
+}
+
+/**
+ * @param { string } name 
+ * @param { number } sign 
+ * @param { Chunk } chunk 
+ * @param { number } offset 
+ * @param { string } output 
+ * @returns 
+ */
+function jumpInstruction(name, sign, chunk, offset, output) {
+	let jump = chunk.code[offset + 1] << 8;
+	jump |= chunk.code[offset + 2];
+	console.log(`${output} ${name} ${offset} ${offset + 3 + sign * jump}`);
+
+	return offset + 3;
 }
 
 /**

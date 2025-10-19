@@ -448,9 +448,16 @@ function ifStatement() {
 	consume('TOKEN_RIGHT_PAREN', "Expected ')' after condition.");
 
 	let thenJump = emitJump(OpCode.OP_JUMP_IF_FALSE);
+	emitByte(OpCode.OP_POP);
 	statement();
 
+	let elseJump = emitJump(OpCode.OP_JUMP);
+
 	patchJump(thenJump);
+	emitByte(OpCode.OP_POP);
+
+	if (match('TOKEN_ELSE')) statement();
+	patchJump(elseJump);
 }
 
 function printStatement() {

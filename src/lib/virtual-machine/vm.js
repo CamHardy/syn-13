@@ -206,6 +206,11 @@ export class VM {
 					}
 					case OpCode.OP_PRINT:
 						printValue(this.pop()); break;
+					case OpCode.OP_JUMP: {
+						let offset = READ_SHORT();
+						this.ip += offset;
+						break;
+					}
 					case OpCode.OP_JUMP_IF_FALSE: {
 						let offset = READ_SHORT();
 						if (this.isFalsey(this.peek(0))) this.ip += offset;
