@@ -487,6 +487,21 @@ function printStatement() {
 	emitByte(OpCode.OP_PRINT);
 }
 
+function whileStatement() {
+	let loopStart = currentChunk().count;
+	consume('TOKEN_LEFT_PAREN', "Expected '(' after 'while'.");
+	expression();
+	consume('TOKEN_RIGHT_PAREN', "Expected ')' after condition.");
+
+	let exitJump = emitJump(OpCode.OP_JUMP_IF_FALSE);
+	emitByte(OpCode.OP_POP);
+	statement();
+	emitLoop(loopStart);
+	
+	patchJump(exitJump);
+	emitByte(OpCode.OP_POP);
+}
+
 function synchronize() {
 	parser.panicMode = false;
 
@@ -525,6 +540,8 @@ function statement() {
 		printStatement();
 	} else if (match('TOKEN_IF')) {
 		ifStatement();
+	} else if (match('TOKEN_WHILE')) {
+		whileStatement();
 	} else if (match('TOKEN_LEFT_BRACE')) {
 		beginScope();
 		block();
@@ -546,6 +563,17 @@ function emitByte(byte) {
 function emitBytes(byte1, byte2) {
 	emitByte(byte1);
 	emitByte(byte2);
+}
+
+/** @param { number } loopStart */
+function emitLoop(loopStart) {
+	emitByte(OpCode.OP_LOOP);
+
+	let offset = currentChunk().count - loopStart + 2;
+	if (offset > 65535) error('Loop body too large.');
+
+	emitByte((offset >> 8) & 0xff);
+	emitByte(offset & 0xff);
 }
 
 /** 

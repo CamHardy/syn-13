@@ -216,6 +216,11 @@ export class VM {
 						if (this.isFalsey(this.peek(0))) this.ip += offset;
 						break;
 					}
+					case OpCode.OP_LOOP: {
+						let offset = READ_SHORT();
+						this.ip -= offset;
+						break;
+					}
 					case OpCode.OP_RETURN:
 						return InterpretResult.INTERPRET_OK;
 				}

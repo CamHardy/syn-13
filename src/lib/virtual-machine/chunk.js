@@ -26,7 +26,8 @@ export const OpCode = Object.freeze({
 	OP_PRINT: 0x14,
 	OP_JUMP: 0x15,
 	OP_JUMP_IF_FALSE: 0x16,
-	OP_RETURN: 0x17
+	OP_LOOP: 0x17,
+	OP_RETURN: 0x18
 });
 
 export class Chunk {
