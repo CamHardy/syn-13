@@ -197,6 +197,18 @@ function number(canAssign) {
 }
 
 /** @param { boolean } canAssign */
+function or_(canAssign) {
+	let elseJump = emitJump(OpCode.OP_JUMP_IF_FALSE);
+	let endJump = emitJump(OpCode.OP_JUMP);
+	
+	patchJump(elseJump);
+	emitByte(OpCode.OP_POP);
+
+	parsePrecedence(Precedence.PREC_OR);
+	patchJump(endJump);
+}
+
+/** @param { boolean } canAssign */
 function string(canAssign) {
 	emitConstant(OBJ_VAL(copyString(parser.previous.lexeme.slice(1, -1))));
 }
@@ -278,7 +290,7 @@ let rules = {
 	['TOKEN_FUN']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_IF']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_NIL']: 						{ prefix: literal, 	infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_OR']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
+	['TOKEN_OR']: 						{ prefix: null, 		infix: or_, 		precedence: Precedence.PREC_OR },
 	['TOKEN_PRINT']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_RETURN']: 				{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_SUPER']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
