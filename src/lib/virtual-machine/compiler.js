@@ -463,6 +463,18 @@ function expressionStatement() {
 	emitByte(OpCode.OP_POP);
 }
 
+function forStatement() {
+	consume('TOKEN_LEFT_PAREN', "Expected '(' after 'for'.");
+	consume('TOKEN_SEMICOLON', "Expected ';'.");
+
+	let loopStart = currentChunk().count;
+	consume('TOKEN_SEMICOLON', "Expected ';'.");
+	consume('TOKEN_RIGHT_PAREN', "Expected ')' after for clauses.");
+
+	statement();
+	emitLoop(loopStart);
+}
+
 function ifStatement() {
 	consume('TOKEN_LEFT_PAREN', "Expected '(' after 'if'.");
 	expression();
@@ -538,6 +550,8 @@ function declaration() {
 function statement() {
 	if (match('TOKEN_PRINT')) {
 		printStatement();
+	} else if (match('TOKEN_FOR')) {
+		forStatement();
 	} else if (match('TOKEN_IF')) {
 		ifStatement();
 	} else if (match('TOKEN_WHILE')) {
