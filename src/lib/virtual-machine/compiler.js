@@ -464,8 +464,15 @@ function expressionStatement() {
 }
 
 function forStatement() {
+	beginScope();
 	consume('TOKEN_LEFT_PAREN', "Expected '(' after 'for'.");
-	consume('TOKEN_SEMICOLON', "Expected ';'.");
+	if (match('TOKEN_SEMICOLON')) {
+		// No initializer.
+	} else if (match('TOKEN_VAR')) {
+		varDeclaration();
+	} else {
+		expressionStatement();
+	}
 
 	let loopStart = currentChunk().count;
 	consume('TOKEN_SEMICOLON', "Expected ';'.");
@@ -473,6 +480,7 @@ function forStatement() {
 
 	statement();
 	emitLoop(loopStart);
+	endScope();
 }
 
 function ifStatement() {
