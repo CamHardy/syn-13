@@ -475,11 +475,28 @@ function forStatement() {
 	}
 
 	let loopStart = currentChunk().count;
+	let exitJump = -1;
+
+	if (!match('TOKEN_SEMICOLON')) {
+		expression();
+		consume('TOKEN_SEMICOLON', "Expected ';' after loop condition.");
+
+		// exit the loop if the condition is false
+		exitJump = emitJump(OpCode.OP_JUMP_IF_FALSE);
+		emitByte(OpCode.OP_POP);
+	}
+
 	consume('TOKEN_SEMICOLON', "Expected ';'.");
 	consume('TOKEN_RIGHT_PAREN', "Expected ')' after for clauses.");
 
 	statement();
 	emitLoop(loopStart);
+
+	if (exitJump !== -1) {
+		patchJump(exitJump);
+		emitByte(OpCode.OP_POP);
+	}
+
 	endScope();
 }
 
