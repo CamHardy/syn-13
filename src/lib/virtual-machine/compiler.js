@@ -486,8 +486,18 @@ function forStatement() {
 		emitByte(OpCode.OP_POP);
 	}
 
-	consume('TOKEN_SEMICOLON', "Expected ';'.");
-	consume('TOKEN_RIGHT_PAREN', "Expected ')' after for clauses.");
+	if (!match('TOKEN_RIGHT_PAREN')) {
+		let bodyJump = emitJump(OpCode.OP_JUMP);
+		let incrementStart = currentChunk().count;
+
+		expression();
+		emitByte(OpCode.OP_POP);
+		consume('TOKEN_RIGHT_PAREN', "Expected ')' after for clauses.");
+
+		emitLoop(loopStart);
+		loopStart = incrementStart;
+		patchJump(bodyJump);
+	}
 
 	statement();
 	emitLoop(loopStart);
