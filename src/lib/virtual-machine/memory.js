@@ -17,5 +17,5 @@ export function growArray(array, capacity) {
 }
 
 export function freeObjects() {
-	this.objects = null;
+	VM.objects = null;
 }

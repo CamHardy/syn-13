@@ -1,13 +1,22 @@
 import { AS_OBJ, IS_OBJ } from './value.js';
 import { VM } from './vm.js';
+import { Chunk } from "./chunk.js";
 /** @import { Value } from "./value.js" */
 
-/** @typedef { 'OBJ_STRING' } ObjType */
+/** @typedef { 'OBJ_FUNCTION' | 'OBJ_STRING' } ObjType */
 
 /** 
  * @typedef { Object } Obj 
  * @property { ObjType } type
  * @property { Obj | null } next
+ */
+
+/** 
+ * @typedef { Obj & {
+ * 	arity: number,
+ * 	chunk: Chunk,
+ * 	name: ObjString | null
+ * } } ObjFunction
  */
 
 /** 
@@ -29,6 +38,18 @@ export function allocateObject(type) {
 
 	VM.objects = object;
 	return object;
+}
+
+function newFunction() {
+	let function_ = allocateObject('OBJ_FUNCTION');
+
+	function_ = Object.assign(function_, {
+		arity: 0,
+		chunk: new Chunk(),
+		name: null
+	});
+
+	return function_;
 }
 
 /** 
@@ -85,6 +106,9 @@ export function copyString(str) {
 /** @param { Value } value */
 export function printObject(value) {
 	switch (OBJ_TYPE(value)) {
+		case 'OBJ_FUNCTION':
+			console.log(`fn ${AS_FUNCTION(value).name}`);
+			break;
 		case 'OBJ_STRING':
 			console.log(AS_CSTRING(value));
 			break;
@@ -102,6 +126,12 @@ export function OBJ_TYPE(value) { return AS_OBJ(value).type }
  * @return { boolean }
  */
 export function IS_STRING(value) { return isObjType(value, 'OBJ_STRING') }
+
+/**
+ * @param { Value } value 
+ * @returns { ObjFunction }
+ */
+function AS_FUNCTION(value) { return AS_OBJ(value) }
 
 /** 
  * @param { Value } value 
