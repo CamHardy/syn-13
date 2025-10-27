@@ -3,10 +3,11 @@ import { OpCode } from './chunk.js';
 import { disassembleChunk } from './debug.js';
 import { DEBUG_PRINT_CODE } from './common.js';
 import { NUMBER_VAL, OBJ_VAL } from './value.js';
-import { copyString } from './object.js';
+import { copyString, newFunction } from './object.js';
 /** @import { Chunk } from './chunk.js' */
 /** @import { Token, TokenType } from './scanner.js' */
 /** @import { Value } from "./value.js" */
+/** @import { ObjFunction } from "./object.js" */
 
 /**
  * @typedef { Object } Parser
@@ -46,8 +47,12 @@ const Precedence = Object.freeze({
  * @property { number } depth
  */
 
+/** @typedef { 'TYPE_FUNCTION' | 'TYPE_SCRIPT' } FunctionType */
+
 /** 
  * @typedef { Object } Compiler
+ * @property { ObjFunction } function
+ * @property { FunctionType } type
  * @property { Local[] } locals
  * @property { number } localCount
  * @property { number } scopeDepth
@@ -60,19 +65,17 @@ let compilingChunk = /** @type { Chunk } */ ({});
 
 /** @returns { Chunk } */
 function currentChunk() {
-	return compilingChunk;
+	return current.function.chunk;
 }
 
 /** 
  * @param { string } source 
- * @param { Chunk } chunk
- * @returns { boolean }
+ * @returns { ObjFunction | null }
  */
-export function compile(source, chunk) {
+export function compile(source) {
 	scanner = new Scanner(source);
 	let compiler = /** @type { Compiler } */ ({});
-	initCompiler(compiler);
-	compilingChunk = chunk;
+	initCompiler(compiler, 'TYPE_SCRIPT');
 
 	parser.hadError = false;
 	parser.panicMode = false;
@@ -83,9 +86,9 @@ export function compile(source, chunk) {
 		declaration();
 	}
 
-	endCompiler();
+	let fn = endCompiler();
 
-	return !parser.hadError;
+	return !parser.hadError ? null : fn;
 }
 
 function advance() {
@@ -130,14 +133,19 @@ function match(type) {
 	return true;
 }
 
+/** @returns { ObjFunction } */
 function endCompiler() {
 	emitReturn();
 
+	let function_ = current.function;
+
 	if (DEBUG_PRINT_CODE) {
 		if (!parser.hadError) {
-			disassembleChunk(currentChunk(), 'code');
+			disassembleChunk(currentChunk(), function_.name !== null ? function_.name.chars : '<script>');
 		}
 	}
+
+	return function_;
 }
 
 function beginScope() {
@@ -670,12 +678,21 @@ function patchJump(offset) {
 	currentChunk().code[offset + 1] = jump & 0xff;
 }
 
-/** @param { Compiler } compiler */
-function initCompiler(compiler) {
+/** 
+ * @param { Compiler } compiler 
+ * @param { FunctionType } type
+ */
+function initCompiler(compiler, type) {
+	compiler.type = type;
 	compiler.localCount = 0;
 	compiler.scopeDepth = 0;
+	compiler.function = newFunction();
 
 	current = compiler;
+
+	let local = current.locals[current.localCount++];
+	local.depth = 0;
+	local.name = "";
 }
 
 /** @param { string } message */

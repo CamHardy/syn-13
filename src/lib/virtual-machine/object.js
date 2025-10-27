@@ -40,16 +40,17 @@ export function allocateObject(type) {
 	return object;
 }
 
-function newFunction() {
+/** @returns { ObjFunction } */
+export function newFunction() {
 	let function_ = allocateObject('OBJ_FUNCTION');
 
-	function_ = Object.assign(function_, {
+	let fn = Object.assign(function_, {
 		arity: 0,
 		chunk: new Chunk(),
 		name: null
 	});
 
-	return function_;
+	return fn;
 }
 
 /** 
@@ -103,11 +104,20 @@ export function copyString(str) {
 	return allocateString(str, hashString(str));
 }
 
+/** @param { ObjFunction } fn */
+function printFunction(fn) {
+	if (fn.name === null) {
+		console.log('<script>');
+		return;
+	}
+	console.log(`<fn ${fn.name.chars}>`);
+}
+
 /** @param { Value } value */
 export function printObject(value) {
 	switch (OBJ_TYPE(value)) {
 		case 'OBJ_FUNCTION':
-			console.log(`fn ${AS_FUNCTION(value).name}`);
+			printFunction(AS_FUNCTION(value));
 			break;
 		case 'OBJ_STRING':
 			console.log(AS_CSTRING(value));

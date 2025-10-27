@@ -68,7 +68,7 @@ export class VM {
 		/** @type { Chunk | null } */
 		let chunk = new Chunk();
 
-		if (!compile(source, chunk)) {
+		if (!compile(source)) {
 			chunk = null;
 
 			return InterpretResult.INTERPRET_COMPILE_ERROR;
