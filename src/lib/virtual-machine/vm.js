@@ -18,7 +18,14 @@ import {
 	valuesEqual,
 	printValue } from './value.js';
 /** @import { Value } from './value.js' */
-/** @import { Obj, ObjString } from './object.js' */
+/** @import { Obj, ObjString, ObjFunction } from './object.js' */
+
+/** 
+ * @typedef { Object } CallFrame
+ * @property { ObjFunction } function
+ * @property { number } ip
+ * @property { Value[] } slots
+ */
 
 /** @type { number } */
 const STACK_MAX = 256;
@@ -31,14 +38,14 @@ export const InterpretResult = Object.freeze({
 });
 
 export class VM {
-	/** @type { Chunk } */
-	static chunk;
+	/** @type { CallFrame[] } */
+	static frames;
 	/** @type { number } */
-	static ip;
+	static frameCount;
 	/** @type { Value[] } */
 	static stack;
 	/** @type { number } */
-	static stackTop = 0;
+	static stackTop;
 	/** @type { Table<ObjString, Value> } */
 	static globals;
 	/** @type { Table<string, ObjString> } */
@@ -49,8 +56,6 @@ export class VM {
 
 	constructor() {
 		VM.resetStack();
-		VM.chunk = new Chunk();
-		VM.ip = 0;
 		VM.stack = new Array(STACK_MAX);
 		VM.objects = null;
 		VM.globals = new Table();
@@ -65,30 +70,26 @@ export class VM {
 
 	/** @param { string } source */
 	static interpret(source) {
-		/** @type { Chunk | null } */
-		let chunk = new Chunk();
+		let fn = compile(source);
+		if (fn == null) return InterpretResult.INTERPRET_COMPILE_ERROR;
 
-		if (!compile(source)) {
-			chunk = null;
+		this.push(OBJ_VAL(fn));
+		let frame = VM.frames[VM.frameCount++];
+		frame.function = fn;
+		frame.ip = fn.chunk.code.length;
+		frame.slots = VM.stack;
 
-			return InterpretResult.INTERPRET_COMPILE_ERROR;
-		}
-
-		this.chunk = chunk;
-		this.ip = 0;
-
-		let result = VM.run();
-		chunk = null;
-
-		return result;
+		return VM.run();
 	}
 
 	static run() {
-		const READ_BYTE = () => this.chunk.code[this.ip++];
-		const READ_CONSTANT = () => this.chunk.constants.values[READ_BYTE()];
+		let frame = VM.frames[VM.frameCount - 1];
+
+		const READ_BYTE = () => frame.function.chunk.code[frame.ip++];
+		const READ_CONSTANT = () => frame.function.chunk.constants.values[READ_BYTE()];
 		const READ_SHORT = () => {
-			this.ip += 2;
-			return (this.chunk.code[this.ip - 2] << 8) | this.chunk.code[this.ip - 1];
+			frame.ip += 2;
+			return (frame.function.chunk.code[frame.ip - 2] << 8) | frame.function.chunk.code[frame.ip - 1];
 		};
 		const READ_STRING = () => AS_STRING(READ_CONSTANT());
 		/** @param { (a: number, b: number) => any } op */
@@ -112,7 +113,7 @@ export class VM {
 						print += '[ ' + this.stack[slot] + ' ]';
 					}
 					console.log(print);
-					disassembleInstruction(this.chunk, this.ip);
+					disassembleInstruction(frame.function.chunk, frame.ip - frame.function.chunk.code.length);
 				}
 				
 				switch (READ_BYTE()) {
@@ -129,12 +130,12 @@ export class VM {
 						this.pop(); break;
 					case OpCode.OP_GET_LOCAL: {
 						let slot = READ_BYTE();
-						VM.push(this.stack[slot]); 
+						VM.push(frame.slots[slot]); 
 						break;
 					}
 					case OpCode.OP_SET_LOCAL: {
 						let slot = READ_BYTE();
-						this.stack[slot] = this.peek(0); 
+						frame.slots[slot] = this.peek(0); 
 						break;
 					}
 					case OpCode.OP_GET_GLOBAL: {
@@ -208,17 +209,17 @@ export class VM {
 						printValue(this.pop()); break;
 					case OpCode.OP_JUMP: {
 						let offset = READ_SHORT();
-						this.ip += offset;
+						frame.ip += offset;
 						break;
 					}
 					case OpCode.OP_JUMP_IF_FALSE: {
 						let offset = READ_SHORT();
-						if (this.isFalsey(this.peek(0))) this.ip += offset;
+						if (this.isFalsey(this.peek(0))) frame.ip += offset;
 						break;
 					}
 					case OpCode.OP_LOOP: {
 						let offset = READ_SHORT();
-						this.ip -= offset;
+						frame.ip -= offset;
 						break;
 					}
 					case OpCode.OP_RETURN:
@@ -232,6 +233,7 @@ export class VM {
 
 	static resetStack() {
 		this.stackTop = 0;
+		this.frameCount = 0;
 	}
 
 	/**
@@ -241,8 +243,9 @@ export class VM {
   static runtimeError(format, ...args) {
     console.error(format, ...args);
 
-    let instruction = this.ip - 1;
-    let line = this.chunk.lines[instruction];
+    let frame = VM.frames[VM.frameCount - 1];
+		let instruction = frame.ip - frame.function.chunk.code.length - 1;
+		let line = frame.function.chunk.lines[instruction];
     console.error(`[line ${line}] in script`);
     this.resetStack();
 
