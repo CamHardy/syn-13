@@ -74,8 +74,7 @@ function currentChunk() {
  */
 export function compile(source) {
 	scanner = new Scanner(source);
-	let compiler = /** @type { Compiler } */ ({});
-	initCompiler(compiler, 'TYPE_SCRIPT');
+	let compiler = initCompiler('TYPE_SCRIPT');
 
 	parser.hadError = false;
 	parser.panicMode = false;
@@ -409,6 +408,7 @@ function parseVariable(errorMessage) {
 }
 
 function markInitialized() {
+	if (current.scopeDepth === 0) return;
 	current.locals[current.localCount - 1].depth = current.scopeDepth;
 }
 
@@ -449,6 +449,27 @@ function block() {
 	}
 
 	consume('TOKEN_RIGHT_BRACE', "Expected '}' after block.");
+}
+
+/** @param { FunctionType } type */
+function func(type) {
+	let compiler = initCompiler(type);
+	beginScope();
+
+	consume('TOKEN_LEFT_PAREN', "Expected '(' after function name.");
+	consume('TOKEN_RIGHT_PAREN', "Expected ')' after parameters.");
+	consume('TOKEN_LEFT_BRACE', "Expected '{' before function body.");
+	block();
+
+	let func = endCompiler();
+	emitBytes(OpCode.OP_CONSTANT, makeConstant(OBJ_VAL(func)));
+}
+
+function funDeclaration() {
+	let global = parseVariable('Expected function name.');
+	markInitialized();
+	func('TYPE_FUNCTION');
+	defineVariable(global);
 }
 
 function varDeclaration() {
@@ -581,7 +602,9 @@ function synchronize() {
 }
 
 function declaration() {
-	if (match('TOKEN_VAR')) {
+	if (match('TOKEN_FUN')) {
+		funDeclaration();
+	} else if (match('TOKEN_VAR')) {
 		varDeclaration();
 	} else {
 		statement();
@@ -679,10 +702,12 @@ function patchJump(offset) {
 }
 
 /** 
- * @param { Compiler } compiler 
- * @param { FunctionType } type
+ * @param { FunctionType } type 
+ * @returns { Compiler }
  */
-function initCompiler(compiler, type) {
+function initCompiler(type) {
+	/** @type { Compiler } */
+	let compiler = {};
 	compiler.type = type;
 	compiler.localCount = 0;
 	compiler.scopeDepth = 0;
@@ -693,6 +718,8 @@ function initCompiler(compiler, type) {
 	let local = current.locals[current.localCount++];
 	local.depth = 0;
 	local.name = "";
+
+	return compiler;
 }
 
 /** @param { string } message */
