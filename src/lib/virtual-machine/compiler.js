@@ -51,6 +51,7 @@ const Precedence = Object.freeze({
 
 /** 
  * @typedef { Object } Compiler
+ * @property { Compiler } enclosing
  * @property { ObjFunction } function
  * @property { FunctionType } type
  * @property { Local[] } locals
@@ -711,6 +712,7 @@ function initCompiler(type) {
 	compiler.type = type;
 	compiler.localCount = 0;
 	compiler.scopeDepth = 0;
+	compiler.enclosing = current;
 	compiler.function = newFunction();
 
 	current = compiler;
