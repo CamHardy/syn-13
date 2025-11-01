@@ -458,6 +458,16 @@ function func(type) {
 	beginScope();
 
 	consume('TOKEN_LEFT_PAREN', "Expected '(' after function name.");
+	if (!check('TOKEN_RIGHT_PAREN')) {
+		do {
+			current.function.arity++;
+			if (current.function.arity > 255) {
+				errorAtCurrent("Can't have more than 255 parameters.");
+			}
+			let constant = parseVariable("Expected parameter name.");
+			defineVariable(constant);
+		} while (match('TOKEN_COMMA'));
+	}
 	consume('TOKEN_RIGHT_PAREN', "Expected ')' after parameters.");
 	consume('TOKEN_LEFT_BRACE', "Expected '{' before function body.");
 	block();
@@ -716,6 +726,10 @@ function initCompiler(type) {
 	compiler.function = newFunction();
 
 	current = compiler;
+
+	if (type !== 'TYPE_SCRIPT') {
+		current.function.name = copyString(parser.previous.lexeme);
+	}
 
 	let local = current.locals[current.localCount++];
 	local.depth = 0;
