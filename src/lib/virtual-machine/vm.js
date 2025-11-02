@@ -56,6 +56,8 @@ export class VM {
 
 	constructor() {
 		VM.resetStack();
+		VM.frames = [];
+		VM.frameCount = 0;
 		VM.stack = new Array(STACK_MAX);
 		VM.objects = null;
 		VM.globals = new Table();
@@ -71,13 +73,14 @@ export class VM {
 	/** @param { string } source */
 	static interpret(source) {
 		let fn = compile(source);
-		if (fn == null) return InterpretResult.INTERPRET_COMPILE_ERROR;
+		if (fn === null) return InterpretResult.INTERPRET_COMPILE_ERROR;
 
-		this.push(OBJ_VAL(fn));
-		let frame = VM.frames[VM.frameCount++];
-		frame.function = fn;
-		frame.ip = fn.chunk.code.length;
-		frame.slots = VM.stack;
+		VM.push(OBJ_VAL(fn));
+		VM.frames[VM.frameCount++] = {
+			function: fn,
+			ip: 0,
+			slots: VM.stack
+		};
 
 		return VM.run();
 	}

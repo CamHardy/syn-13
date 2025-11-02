@@ -88,7 +88,7 @@ export function compile(source) {
 
 	let fn = endCompiler();
 
-	return !parser.hadError ? null : fn;
+	return parser.hadError ? null : fn;
 }
 
 function advance() {
@@ -145,6 +145,7 @@ function endCompiler() {
 		}
 	}
 
+	current = current.enclosing;
 	return function_;
 }
 
@@ -180,6 +181,12 @@ function binary(canAssign) {
 		case 'TOKEN_SLASH': emitByte(OpCode.OP_DIVIDE); break;
 		default: return; // Unreachable.
 	}
+}
+
+/** @param { boolean } canAssign */
+function call(canAssign) {
+	let argCount = argumentList();
+	emitBytes(OpCode.OP_CALL, argCount);
 }
 
 /** @param { boolean } canAssign */
@@ -268,7 +275,7 @@ function unary(canAssign) {
 
 /** @type { Record<TokenType, ParseRule> } */
 let rules = {
-	['TOKEN_LEFT_PAREN']: 		{ prefix: grouping, infix: null, 		precedence: Precedence.PREC_NONE },
+	['TOKEN_LEFT_PAREN']: 		{ prefix: grouping, infix: call, 		precedence: Precedence.PREC_CALL },
 	['TOKEN_RIGHT_PAREN']: 		{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_LEFT_BRACE']: 		{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
 	['TOKEN_RIGHT_BRACE']: 		{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
@@ -419,6 +426,25 @@ function defineVariable(global) {
 	}
 
 	emitBytes(OpCode.OP_DEFINE_GLOBAL, global);
+}
+
+/** @returns { number } */
+function argumentList() {
+	let argCount = 0;
+	if (!check('TOKEN_RIGHT_PAREN')) {
+		do {
+			expression();
+
+			if (argCount === 255) {
+				error("Can't have more than 255 arguments.");
+			}
+
+			argCount++;
+		} while (match('TOKEN_COMMA'));
+	}
+	consume('TOKEN_RIGHT_PAREN', "Expected ')' after arguments.");
+
+	return argCount;
 }
 
 /** @param { boolean } canAssign */
