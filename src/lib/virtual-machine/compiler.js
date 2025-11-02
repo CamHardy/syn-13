@@ -375,9 +375,7 @@ function addLocal(name) {
 		return;
 	}
 
-	let local = current.locals[current.localCount++];
-	local.name = name.lexeme;
-	local.depth = -1;
+	current.locals[current.localCount++] = { name: name.lexeme, depth: -1 };
 }
 
 function declareVariable() {
@@ -720,6 +718,7 @@ function initCompiler(type) {
 	/** @type { Compiler } */
 	let compiler = {};
 	compiler.type = type;
+	compiler.locals = [];
 	compiler.localCount = 0;
 	compiler.scopeDepth = 0;
 	compiler.enclosing = current;
@@ -731,9 +730,7 @@ function initCompiler(type) {
 		current.function.name = copyString(parser.previous.lexeme);
 	}
 
-	let local = current.locals[current.localCount++];
-	local.depth = 0;
-	local.name = "";
+	current.locals[current.localCount++] = { name: "", depth: 0 };
 
 	return compiler;
 }
