@@ -4,7 +4,13 @@ import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
 import { freeObjects } from './memory.js';
 import { Table } from './table.js';
-import { AS_STRING, IS_STRING, takeString } from './object.js';
+import { 
+	AS_STRING, 
+	IS_STRING, 
+	takeString,
+	OBJ_TYPE, 
+	AS_FUNCTION,
+} from './object.js';
 import { 
 	BOOL_VAL, 
 	NIL_VAL, 
@@ -16,7 +22,9 @@ import {
 	IS_NIL,
 	IS_NUMBER,
 	valuesEqual,
-	printValue } from './value.js';
+	printValue, 
+	IS_OBJ,
+} from './value.js';
 /** @import { Value } from './value.js' */
 /** @import { Obj, ObjString, ObjFunction } from './object.js' */
 
@@ -24,7 +32,7 @@ import {
  * @typedef { Object } CallFrame
  * @property { ObjFunction } function
  * @property { number } ip
- * @property { Value[] } slots
+ * @property { number } slots
  */
 
 /** @type { number } */
@@ -76,11 +84,7 @@ export class VM {
 		if (fn === null) return InterpretResult.INTERPRET_COMPILE_ERROR;
 
 		VM.push(OBJ_VAL(fn));
-		VM.frames[VM.frameCount++] = {
-			function: fn,
-			ip: 0,
-			slots: VM.stack
-		};
+		this.call(fn, 0);
 
 		return VM.run();
 	}
@@ -116,7 +120,7 @@ export class VM {
 						print += '[ ' + this.stack[slot] + ' ]';
 					}
 					console.log(print);
-					disassembleInstruction(frame.function.chunk, frame.ip - frame.function.chunk.code.length);
+					disassembleInstruction(frame.function.chunk, frame.ip);
 				}
 				
 				switch (READ_BYTE()) {
@@ -133,12 +137,12 @@ export class VM {
 						this.pop(); break;
 					case OpCode.OP_GET_LOCAL: {
 						let slot = READ_BYTE();
-						VM.push(frame.slots[slot]); 
+						VM.push(VM.stack[frame.slots + slot]); 
 						break;
 					}
 					case OpCode.OP_SET_LOCAL: {
 						let slot = READ_BYTE();
-						frame.slots[slot] = this.peek(0); 
+						VM.stack[frame.slots + slot] = this.peek(0); 
 						break;
 					}
 					case OpCode.OP_GET_GLOBAL: {
@@ -225,6 +229,15 @@ export class VM {
 						frame.ip -= offset;
 						break;
 					}
+					case OpCode.OP_CALL: {
+						let argCount = READ_BYTE();
+
+						if (!this.callValue(this.peek(argCount), argCount)) {
+							return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						}
+						frame = this.frames[this.frameCount - 1]
+						break;
+					}
 					case OpCode.OP_RETURN:
 						return InterpretResult.INTERPRET_OK;
 				}
@@ -247,8 +260,8 @@ export class VM {
     console.error(format, ...args);
 
     let frame = VM.frames[VM.frameCount - 1];
-		let instruction = frame.ip - frame.function.chunk.code.length - 1;
-		let line = frame.function.chunk.lines[instruction];
+	let instruction = frame.ip - 1;
+	let line = frame.function.chunk.lines[instruction];
     console.error(`[line ${line}] in script`);
     this.resetStack();
 
@@ -268,6 +281,40 @@ export class VM {
 	/** @param { number } distance */
 	static peek(distance) {
 		return this.stack[this.stackTop - 1 - distance];
+	}
+
+	/**
+	 * @param { ObjFunction } func 
+	 * @param { number } argCount 
+	 * @returns { boolean }
+	 */
+	static call(func, argCount) {
+		VM.frames[VM.frameCount++] = {
+			function: func,
+			ip: 0,
+			slots: VM.stackTop - argCount - 1
+		};
+
+		return true;
+	}
+
+	/**
+	 * @param { Value } callee 
+	 * @param { number } argCount 
+	 * @returns { boolean }
+	 */
+	static callValue(callee, argCount) {
+		if (IS_OBJ(callee)) {
+			switch (OBJ_TYPE(callee)) {
+				case 'OBJ_FUNCTION':
+					return this.call(AS_FUNCTION(callee), argCount);
+				default:
+					break;
+			}
+		}
+		this.runtimeError("Can only call functions and classes.");
+
+		return false;
 	}
 
 	/** @param { Value } value */
