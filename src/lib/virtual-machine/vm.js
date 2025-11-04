@@ -35,6 +35,8 @@ import {
  * @property { number } slots
  */
 
+const FRAMES_MAX = 64;
+
 /** @type { number } */
 const STACK_MAX = 256;
 const RUNTIME_ERROR = new Error();
@@ -289,6 +291,16 @@ export class VM {
 	 * @returns { boolean }
 	 */
 	static call(func, argCount) {
+		if (argCount != func.arity) {
+			this.runtimeError(`Expected ${func.arity} arguments but got ${argCount}`);
+			return false;
+		}
+
+		if (VM.frameCount === FRAMES_MAX) {
+			this.runtimeError('Stack overflow.');
+			return false;
+		}
+
 		VM.frames[VM.frameCount++] = {
 			function: func,
 			ip: 0,
