@@ -141,7 +141,7 @@ export function IS_STRING(value) { return isObjType(value, 'OBJ_STRING') }
  * @param { Value } value 
  * @returns { ObjFunction }
  */
-function AS_FUNCTION(value) { return AS_OBJ(value) }
+export function AS_FUNCTION(value) { return AS_OBJ(value) }
 
 /** 
  * @param { Value } value 

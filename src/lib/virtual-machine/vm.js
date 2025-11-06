@@ -261,13 +261,21 @@ export class VM {
   static runtimeError(format, ...args) {
     console.error(format, ...args);
 
-    let frame = VM.frames[VM.frameCount - 1];
-	let instruction = frame.ip - 1;
-	let line = frame.function.chunk.lines[instruction];
-    console.error(`[line ${line}] in script`);
-    this.resetStack();
+	for (let i = VM.frameCount - 1; i >= 0; i--) {
+		let frame = VM.frames[i];
+		let func = frame.function;
+		let instruction = frame.ip -1;
 
-		throw RUNTIME_ERROR;
+		if (func.name === null) {
+    		console.error(`[line ${func.chunk.lines[instruction]}] in script`);
+    	} else {
+      		console.error(`[line ${func.chunk.lines[instruction]}] in ${func.name.chars}()`);
+    	}
+	}
+    
+	this.resetStack();
+
+	throw RUNTIME_ERROR;
   }
 
 	/** @param { Value } value */
