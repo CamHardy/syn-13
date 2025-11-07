@@ -704,6 +704,7 @@ function emitJump(instruction) {
 }
 
 function emitReturn() {
+	emitByte(OpCode.OP_NIL);
 	emitByte(OpCode.OP_RETURN);
 }
 

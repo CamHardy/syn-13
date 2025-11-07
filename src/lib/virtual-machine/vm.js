@@ -240,8 +240,22 @@ export class VM {
 						frame = this.frames[this.frameCount - 1]
 						break;
 					}
-					case OpCode.OP_RETURN:
-						return InterpretResult.INTERPRET_OK;
+					case OpCode.OP_RETURN: {
+						let result = this.pop();
+						VM.frameCount--;
+
+						if (VM.frameCount === 0) {
+							this.pop();
+							
+							return InterpretResult.INTERPRET_OK;
+						}
+
+						VM.stackTop = frame.slots;
+						this.push(result);
+						frame = VM.frames[VM.frameCount - 1];
+
+						break;
+					}
 				}
 			}
 		} catch (e) {
