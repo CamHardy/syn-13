@@ -598,6 +598,21 @@ function printStatement() {
 	emitByte(OpCode.OP_PRINT);
 }
 
+function returnStatement() {
+	if (current.type === 'TYPE_SCRIPT') {
+		error("Can't return from top-level code.");
+	}
+
+	if (match('TOKEN_SEMICOLON')) {
+		emitReturn();
+	} else {
+		expression();
+		consume('TOKEN_SEMICOLON', "Expected ';' after return value.");
+		emitByte(OpCode.OP_RETURN);
+	}
+}
+
+
 function whileStatement() {
 	let loopStart = currentChunk().count;
 	consume('TOKEN_LEFT_PAREN', "Expected '(' after 'while'.");
@@ -655,6 +670,8 @@ function statement() {
 		forStatement();
 	} else if (match('TOKEN_IF')) {
 		ifStatement();
+	} else if (match('TOKEN_RETURN')) {
+		returnStatement();
 	} else if (match('TOKEN_WHILE')) {
 		whileStatement();
 	} else if (match('TOKEN_LEFT_BRACE')) {
