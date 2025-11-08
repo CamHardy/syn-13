@@ -10,6 +10,9 @@ import {
 	takeString,
 	OBJ_TYPE, 
 	AS_FUNCTION,
+	AS_NATIVE,
+	copyString,
+	newNative,
 } from './object.js';
 import { 
 	BOOL_VAL, 
@@ -26,7 +29,7 @@ import {
 	IS_OBJ,
 } from './value.js';
 /** @import { Value } from './value.js' */
-/** @import { Obj, ObjString, ObjFunction } from './object.js' */
+/** @import { NativeFn, Obj, ObjString, ObjFunction } from './object.js' */
 
 /** 
  * @typedef { Object } CallFrame
@@ -46,6 +49,11 @@ export const InterpretResult = Object.freeze({
 	INTERPRET_COMPILE_ERROR: 1,
 	INTERPRET_RUNTIME_ERROR: 2
 });
+
+/** @type { NativeFn } */
+function clockNative(argCount, args) {
+	return NUMBER_VAL(process.uptime());
+}
 
 export class VM {
 	/** @type { CallFrame[] } */
@@ -72,6 +80,8 @@ export class VM {
 		VM.objects = null;
 		VM.globals = new Table();
 		VM.strings = new Table();
+
+		VM.defineNative('clock', clockNative);
 	}
 
 	static freeVM() {
@@ -101,8 +111,11 @@ export class VM {
 			return (frame.function.chunk.code[frame.ip - 2] << 8) | frame.function.chunk.code[frame.ip - 1];
 		};
 		const READ_STRING = () => AS_STRING(READ_CONSTANT());
-		/** @param { (a: number, b: number) => any } op */
-		const BINARY_OP = (op) => {
+		/** 
+		 * @param { (value: any) => Value } valueType
+		 * @param { (a: number, b: number) => any } op 
+		 */
+		const BINARY_OP = (valueType, op) => {
 			if (!IS_NUMBER(this.peek(0)) || !IS_NUMBER(this.peek(1))) {
 				this.runtimeError('Operands must be numbers.');
 				throw RUNTIME_ERROR;
@@ -111,7 +124,7 @@ export class VM {
 			const b = AS_NUMBER(this.pop());
 			/** @type { number } */
 			const a = AS_NUMBER(this.pop());
-			this.push(NUMBER_VAL(op(a, b)));
+			this.push(valueType(op(a, b)));
 		};
 
 		try {
@@ -181,10 +194,8 @@ export class VM {
 						let a = this.pop();
 						this.push(BOOL_VAL(valuesEqual(a, b))); break;
 					}
-					case OpCode.OP_GREATER:
-						BINARY_OP((a, b) => a > b); break;
-					case OpCode.OP_LESS:
-						BINARY_OP((a, b) => a < b); break;
+					case OpCode.OP_GREATER: BINARY_OP(BOOL_VAL, (a, b) => a > b); break;
+					case OpCode.OP_LESS: BINARY_OP(BOOL_VAL, (a, b) => a < b); break;
 					case OpCode.OP_ADD: {
 						if (IS_STRING(this.peek(0)) && IS_STRING(this.peek(1))) {
 							this.concatenate();
@@ -198,12 +209,9 @@ export class VM {
 						} 
 						break;
 					}
-					case OpCode.OP_SUBTRACT:
-						BINARY_OP((a, b) => a - b); break;
-					case OpCode.OP_MULTIPLY:
-						BINARY_OP((a, b) => a * b); break;
-					case OpCode.OP_DIVIDE:
-						BINARY_OP((a, b) => a / b); break;
+					case OpCode.OP_SUBTRACT: BINARY_OP(NUMBER_VAL, (a, b) => a - b); break;
+					case OpCode.OP_MULTIPLY: BINARY_OP(NUMBER_VAL, (a, b) => a * b); break;
+					case OpCode.OP_DIVIDE: BINARY_OP(NUMBER_VAL, (a, b) => a / b); break;
 					case OpCode.OP_NOT:
 						this.push(BOOL_VAL(this.isFalsey(this.pop()))); break;
 					case OpCode.OP_NEGATE: {
@@ -246,7 +254,7 @@ export class VM {
 
 						if (VM.frameCount === 0) {
 							this.pop();
-							
+
 							return InterpretResult.INTERPRET_OK;
 						}
 
@@ -269,28 +277,40 @@ export class VM {
 	}
 
 	/**
-   * @param { string } format
-   * @param { ...unknown } args
-   */
-  static runtimeError(format, ...args) {
-    console.error(format, ...args);
+	 * @param { string } format
+	 * @param { ...unknown } args
+	 */
+	static runtimeError(format, ...args) {
+		console.error(format, ...args);
 
-	for (let i = VM.frameCount - 1; i >= 0; i--) {
-		let frame = VM.frames[i];
-		let func = frame.function;
-		let instruction = frame.ip -1;
+		for (let i = VM.frameCount - 1; i >= 0; i--) {
+			let frame = VM.frames[i];
+			let func = frame.function;
+			let instruction = frame.ip -1;
 
-		if (func.name === null) {
-    		console.error(`[line ${func.chunk.lines[instruction]}] in script`);
-    	} else {
-      		console.error(`[line ${func.chunk.lines[instruction]}] in ${func.name.chars}()`);
-    	}
-	}
-    
-	this.resetStack();
+			if (func.name === null) {
+					console.error(`[line ${func.chunk.lines[instruction]}] in script`);
+				} else {
+						console.error(`[line ${func.chunk.lines[instruction]}] in ${func.name.chars}()`);
+				}
+		}
 
-	throw RUNTIME_ERROR;
+		this.resetStack();
+
+		throw RUNTIME_ERROR;
   }
+
+	/**
+	 * @param { string } name 
+	 * @param { NativeFn } func 
+	 */
+	static defineNative(name, func) {
+		this.push(OBJ_VAL(copyString(name)));
+		this.push(OBJ_VAL(newNative(func)));
+		VM.globals.set(AS_STRING(VM.stack[0]), VM.stack[1]);
+		this.pop();
+		this.pop();
+	}
 
 	/** @param { Value } value */
 	static push(value) {
@@ -342,6 +362,13 @@ export class VM {
 			switch (OBJ_TYPE(callee)) {
 				case 'OBJ_FUNCTION':
 					return this.call(AS_FUNCTION(callee), argCount);
+				case 'OBJ_NATIVE':
+					let native = AS_NATIVE(callee);
+					let result = native(argCount, VM.stack.slice(VM.stackTop - argCount, VM.stackTop));
+					VM.stackTop -= argCount + 1;
+					this.push(result);
+
+					return true;
 				default:
 					break;
 			}

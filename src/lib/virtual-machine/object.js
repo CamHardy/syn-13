@@ -3,7 +3,7 @@ import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
 /** @import { Value } from "./value.js" */
 
-/** @typedef { 'OBJ_FUNCTION' | 'OBJ_STRING' } ObjType */
+/** @typedef { 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' } ObjType */
 
 /** 
  * @typedef { Object } Obj 
@@ -17,6 +17,14 @@ import { Chunk } from "./chunk.js";
  * 	chunk: Chunk,
  * 	name: ObjString | null
  * } } ObjFunction
+ */
+
+/** @typedef { (argCount: number, args: Value[]) => Value } NativeFn */
+
+/** 
+ * @typedef { Obj & {
+ * 	function: NativeFn;
+ * } } ObjNative
  */
 
 /** 
@@ -51,6 +59,17 @@ export function newFunction() {
 	});
 
 	return fn;
+}
+
+/** @param { NativeFn } func */
+export function newNative(func) {
+	let native = allocateObject('OBJ_NATIVE');
+
+	native = Object.assign(native, {
+		function: func
+	})
+
+	return native;
 }
 
 /** 
@@ -119,6 +138,9 @@ export function printObject(value) {
 		case 'OBJ_FUNCTION':
 			printFunction(AS_FUNCTION(value));
 			break;
+		case 'OBJ_NATIVE':
+			console.log('<native fn>');
+			break;
 		case 'OBJ_STRING':
 			console.log(AS_CSTRING(value));
 			break;
@@ -131,6 +153,12 @@ export function printObject(value) {
  */
 export function OBJ_TYPE(value) { return AS_OBJ(value).type }
 
+/**
+ * @param { Value } value 
+ * @returns { boolean } 
+ */
+export function IS_NATIVE(value) { return isObjType(value, 'OBJ_NATIVE') }
+
 /** 
  * @param { Value } value 
  * @return { boolean }
@@ -142,6 +170,12 @@ export function IS_STRING(value) { return isObjType(value, 'OBJ_STRING') }
  * @returns { ObjFunction }
  */
 export function AS_FUNCTION(value) { return AS_OBJ(value) }
+
+/**
+ * @param { Value } value 
+ * @returns { NativeFn }
+ */
+export function AS_NATIVE(value) { return AS_OBJ(value).function}
 
 /** 
  * @param { Value } value 
