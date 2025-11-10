@@ -3,7 +3,7 @@ import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
 /** @import { Value } from "./value.js" */
 
-/** @typedef { 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' } ObjType */
+/** @typedef { 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' } ObjType */
 
 /** 
  * @typedef { Object } Obj 
@@ -36,6 +36,12 @@ import { Chunk } from "./chunk.js";
  */
 
 /**
+ * @typedef { Obj & {
+ *   function: ObjFunction
+ * } } ObjClosure
+ */
+
+/**
  * @param { ObjType } type
  * @returns { Obj }
  */
@@ -48,11 +54,20 @@ export function allocateObject(type) {
 	return object;
 }
 
+/** @param { ObjFunction } func */
+export function newClosure(func) {
+	let closure = allocateObject('OBJ_CLOSURE');
+
+	closure = Object.assign(func, {
+		function: func
+	});
+}
+
 /** @returns { ObjFunction } */
 export function newFunction() {
-	let function_ = allocateObject('OBJ_FUNCTION');
+	let func = allocateObject('OBJ_FUNCTION');
 
-	let fn = Object.assign(function_, {
+	let fn = Object.assign(func, {
 		arity: 0,
 		chunk: new Chunk(),
 		name: null
@@ -67,7 +82,7 @@ export function newNative(func) {
 
 	native = Object.assign(native, {
 		function: func
-	})
+	});
 
 	return native;
 }
@@ -135,6 +150,8 @@ function printFunction(fn) {
 /** @param { Value } value */
 export function printObject(value) {
 	switch (OBJ_TYPE(value)) {
+		case 'OBJ_CLOSURE':
+			printFunction(AS_CLOSURE(value).function);
 		case 'OBJ_FUNCTION':
 			printFunction(AS_FUNCTION(value));
 			break;
@@ -153,44 +170,48 @@ export function printObject(value) {
  */
 export function OBJ_TYPE(value) { return AS_OBJ(value).type }
 
+/** @param { Value } value */
+export function IS_CLOSURE(value) { return isObjType(value, 'OBJ_CLOSURE'); }
+
+/** @param { Value } value */
+export function IS_FUNCTION(value) { return isObjType(value, 'OBJ_FUNCTION'); }
+
+/** @param { Value } value */
+export function IS_NATIVE(value) { return isObjType(value, 'OBJ_NATIVE'); }
+
+/** @param { Value } value */
+export function IS_STRING(value) { return isObjType(value, 'OBJ_STRING'); }
+
 /**
  * @param { Value } value 
- * @returns { boolean } 
+ * @returns { ObjClosure }
  */
-export function IS_NATIVE(value) { return isObjType(value, 'OBJ_NATIVE') }
-
-/** 
- * @param { Value } value 
- * @return { boolean }
- */
-export function IS_STRING(value) { return isObjType(value, 'OBJ_STRING') }
+export function AS_CLOSURE(value) { return AS_OBJ(value); }
 
 /**
  * @param { Value } value 
- * @returns { ObjFunction }
+ * @returns { ObjFunction } 
  */
-export function AS_FUNCTION(value) { return AS_OBJ(value) }
+export function AS_FUNCTION(value) { return AS_OBJ(value); }
 
 /**
  * @param { Value } value 
  * @returns { NativeFn }
  */
-export function AS_NATIVE(value) { return AS_OBJ(value).function}
+export function AS_NATIVE(value) { return AS_OBJ(value).function; }
 
 /** 
  * @param { Value } value 
  * @return { ObjString }
  */
-export function AS_STRING(value) { return AS_OBJ(value) }
+export function AS_STRING(value) { return AS_OBJ(value); }
 
 /** @param { Value } value */
-export function AS_CSTRING(value) { return AS_STRING(value).chars }
+export function AS_CSTRING(value) { return AS_STRING(value).chars; }
 
 /** 
  * @param { Value } value 
  * @param { ObjType } type 
  * @return { boolean }
  */
-export function isObjType(value, type) {
-	return IS_OBJ(value) && AS_OBJ(value).type === type;
-}
+export function isObjType(value, type) { return IS_OBJ(value) && AS_OBJ(value).type === type; }
