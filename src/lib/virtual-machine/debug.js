@@ -74,6 +74,11 @@ export function disassembleInstruction(chunk, offset) {
 			return jumpInstruction('OP_LOOP', -1, chunk, offset, output);
 		case OpCode.OP_CALL:
 			return byteInstruction('OP_CALL', chunk, offset, output);
+		case OpCode.OP_CLOSURE:
+			offset++;
+			let constant = chunk.code[offset++];
+			console.log(`${output} ${'OP_CLOSURE'.padEnd(16)} ${String(constant).padStart(4, ' ')} ${chunk.constants.values[constant]}`);
+			return offset;
 		case OpCode.OP_RETURN:
 			return simpleInstruction('OP_RETURN', offset, output);
 		default:

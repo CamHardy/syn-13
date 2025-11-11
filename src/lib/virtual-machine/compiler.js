@@ -497,7 +497,7 @@ function func(type) {
 	block();
 
 	let func = endCompiler();
-	emitBytes(OpCode.OP_CONSTANT, makeConstant(OBJ_VAL(func)));
+	emitBytes(OpCode.OP_CLOSURE, makeConstant(OBJ_VAL(func)));
 }
 
 function funDeclaration() {
