@@ -54,13 +54,18 @@ export function allocateObject(type) {
 	return object;
 }
 
-/** @param { ObjFunction } func */
+/** 
+ * @param { ObjFunction } func 
+ * @returns { ObjClosure }
+ */
 export function newClosure(func) {
-	let closure = allocateObject('OBJ_CLOSURE');
+	let closure_ = allocateObject('OBJ_CLOSURE');
 
-	closure = Object.assign(func, {
+	let closure = Object.assign(closure_, {
 		function: func
 	});
+
+	return closure;
 }
 
 /** @returns { ObjFunction } */

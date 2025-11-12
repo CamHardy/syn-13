@@ -9,10 +9,12 @@ import {
 	IS_STRING, 
 	takeString,
 	OBJ_TYPE, 
+	AS_CLOSURE,
 	AS_FUNCTION,
 	AS_NATIVE,
 	copyString,
 	newNative,
+	newClosure
 } from './object.js';
 import { 
 	BOOL_VAL, 
@@ -29,11 +31,11 @@ import {
 	IS_OBJ,
 } from './value.js';
 /** @import { Value } from './value.js' */
-/** @import { NativeFn, Obj, ObjString, ObjFunction } from './object.js' */
+/** @import { NativeFn, Obj, ObjString, ObjClosure, ObjFunction } from './object.js' */
 
 /** 
  * @typedef { Object } CallFrame
- * @property { ObjFunction } function
+ * @property { ObjClosure } closure
  * @property { number } ip
  * @property { number } slots
  */
@@ -96,7 +98,10 @@ export class VM {
 		if (fn === null) return InterpretResult.INTERPRET_COMPILE_ERROR;
 
 		VM.push(OBJ_VAL(fn));
-		this.call(fn, 0);
+		let closure = newClosure(fn);
+		VM.pop();
+		VM.push(OBJ_VAL(closure));
+		this.call(closure, 0);
 
 		return VM.run();
 	}
@@ -104,11 +109,11 @@ export class VM {
 	static run() {
 		let frame = VM.frames[VM.frameCount - 1];
 
-		const READ_BYTE = () => frame.function.chunk.code[frame.ip++];
-		const READ_CONSTANT = () => frame.function.chunk.constants.values[READ_BYTE()];
+		const READ_BYTE = () => frame.closure.function.chunk.code[frame.ip++];
+		const READ_CONSTANT = () => frame.closure.function.chunk.constants.values[READ_BYTE()];
 		const READ_SHORT = () => {
 			frame.ip += 2;
-			return (frame.function.chunk.code[frame.ip - 2] << 8) | frame.function.chunk.code[frame.ip - 1];
+			return (frame.closure.function.chunk.code[frame.ip - 2] << 8) | frame.closure.function.chunk.code[frame.ip - 1];
 		};
 		const READ_STRING = () => AS_STRING(READ_CONSTANT());
 		/** 
@@ -135,7 +140,7 @@ export class VM {
 						print += '[ ' + this.stack[slot] + ' ]';
 					}
 					console.log(print);
-					disassembleInstruction(frame.function.chunk, frame.ip);
+					disassembleInstruction(frame.closure.function.chunk, frame.ip);
 				}
 				
 				switch (READ_BYTE()) {
@@ -248,6 +253,12 @@ export class VM {
 						frame = this.frames[this.frameCount - 1]
 						break;
 					}
+					case OpCode.OP_CLOSURE: {
+						let func = AS_FUNCTION(READ_CONSTANT());
+						let closure = newClosure(func);
+						this.push(OBJ_VAL(closure));
+						break;
+					}
 					case OpCode.OP_RETURN: {
 						let result = this.pop();
 						VM.frameCount--;
@@ -285,7 +296,7 @@ export class VM {
 
 		for (let i = VM.frameCount - 1; i >= 0; i--) {
 			let frame = VM.frames[i];
-			let func = frame.function;
+			let func = frame.closure.function;
 			let instruction = frame.ip -1;
 
 			if (func.name === null) {
@@ -328,13 +339,13 @@ export class VM {
 	}
 
 	/**
-	 * @param { ObjFunction } func 
+	 * @param { ObjClosure } closure 
 	 * @param { number } argCount 
 	 * @returns { boolean }
 	 */
-	static call(func, argCount) {
-		if (argCount != func.arity) {
-			this.runtimeError(`Expected ${func.arity} arguments but got ${argCount}`);
+	static call(closure, argCount) {
+		if (argCount != closure.function.arity) {
+			this.runtimeError(`Expected ${closure.function.arity} arguments but got ${argCount}`);
 			return false;
 		}
 
@@ -344,7 +355,7 @@ export class VM {
 		}
 
 		VM.frames[VM.frameCount++] = {
-			function: func,
+			closure: closure,
 			ip: 0,
 			slots: VM.stackTop - argCount - 1
 		};
@@ -360,8 +371,10 @@ export class VM {
 	static callValue(callee, argCount) {
 		if (IS_OBJ(callee)) {
 			switch (OBJ_TYPE(callee)) {
+				case 'OBJ_CLOSURE' :
+					return this.call(AS_CLOSURE(callee), argCount);
 				case 'OBJ_FUNCTION':
-					return this.call(AS_FUNCTION(callee), argCount);
+					return this.call(AS_CLOSURE(callee), argCount);
 				case 'OBJ_NATIVE':
 					let native = AS_NATIVE(callee);
 					let result = native(argCount, VM.stack.slice(VM.stackTop - argCount, VM.stackTop));
