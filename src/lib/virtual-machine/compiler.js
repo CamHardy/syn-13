@@ -47,6 +47,12 @@ const Precedence = Object.freeze({
  * @property { number } depth
  */
 
+/**
+ * @typedef { Object } Upvalue
+ * @property { number } index
+ * @property { boolean } isLocal
+ */
+
 /** @typedef { 'TYPE_FUNCTION' | 'TYPE_SCRIPT' } FunctionType */
 
 /** 
@@ -56,6 +62,7 @@ const Precedence = Object.freeze({
  * @property { FunctionType } type
  * @property { Local[] } locals
  * @property { number } localCount
+ * @property { Upvalue[] } upvalues
  * @property { number } scopeDepth
  */
 
@@ -239,6 +246,9 @@ function namedVariable(name, canAssign) {
 	if (arg !== -1) {
 		getOp = OpCode.OP_GET_LOCAL;
 		setOp = OpCode.OP_SET_LOCAL;
+	} else if ((arg = resolveUpvalue(current, name)) !== -1) {
+		getOp = OpCode.OP_GET_UPVALUE;
+		setOp = OpCode.OP_SET_UPVALUE;
 	} else {
 		arg = identifierConstant(name);
 		getOp = OpCode.OP_GET_GLOBAL;
@@ -375,9 +385,49 @@ function resolveLocal(compiler, name) {
 	return -1;
 }
 
+/**
+ * @param { Compiler } compiler 
+ * @param { Token } name 
+ * @returns { number }
+ */
+function resolveUpvalue(compiler, name) {
+	if (compiler.enclosing === null) return -1;
+
+	let local = resolveLocal(compiler.enclosing, name);
+	if (local !== -1) {
+		return addUpvalue(compiler, local, true);
+	}
+
+	return -1;
+}
+
+/**
+ * @param { Compiler } compiler 
+ * @param { number } index 
+ * @param { boolean } isLocal 
+ * @returns { number }
+ */
+function addUpvalue(compiler, index, isLocal) {
+	let upvalueCount = compiler.function.upvalueCount;
+
+	for (let i = 0; i < upvalueCount; i++) {
+		let upvalue = compiler.upvalues[i];
+		if (upvalue.index === index && upvalue.isLocal === isLocal) return i;
+	}
+
+	if (upvalueCount === 256) {
+		error('Too many closure variables in fucnction.');
+		return 0;
+	}
+
+	compiler.upvalues[upvalueCount] = { isLocal, index };
+
+	return compiler.function.upvalueCount++;
+}
+
 /** @param { Token } name */
 function addLocal(name) {
-	if (current.localCount === 255) {
+	if (current.localCount === 256) {
 		error("Too many local variables in function.");
 		return;
 	}

@@ -14,6 +14,7 @@ import { Chunk } from "./chunk.js";
 /** 
  * @typedef { Obj & {
  * 	arity: number,
+ *  upvalueCount: number,
  * 	chunk: Chunk,
  * 	name: ObjString | null
  * } } ObjFunction
@@ -74,6 +75,7 @@ export function newFunction() {
 
 	let fn = Object.assign(func, {
 		arity: 0,
+		upvalueCount: 0,
 		chunk: new Chunk(),
 		name: null
 	});
