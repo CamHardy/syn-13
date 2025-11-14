@@ -14,7 +14,8 @@ import {
 	AS_NATIVE,
 	copyString,
 	newNative,
-	newClosure
+	newClosure,
+	newUpvalue
 } from './object.js';
 import { 
 	BOOL_VAL, 
@@ -31,7 +32,7 @@ import {
 	IS_OBJ,
 } from './value.js';
 /** @import { Value } from './value.js' */
-/** @import { NativeFn, Obj, ObjString, ObjClosure, ObjFunction } from './object.js' */
+/** @import { NativeFn, Obj, ObjString, ObjClosure, ObjFunction, ObjUpvalue } from './object.js' */
 
 /** 
  * @typedef { Object } CallFrame
@@ -194,6 +195,18 @@ export class VM {
 						}
 						break;
 					}
+					case OpCode.OP_GET_UPVALUE: {
+						let slot = READ_BYTE();
+						let upvalue = frame.closure.upvalues[slot];
+						if (upvalue) this.push(upvalue.location);
+						break;
+					}
+					case OpCode.OP_SET_UPVALUE: {
+						let slot = READ_BYTE();
+						let upvalue = frame.closure.upvalues[slot];
+						if (upvalue) upvalue.location = this.peek(0);
+						break;
+					}
 					case OpCode.OP_EQUAL: {
 						let b = this.pop();
 						let a = this.pop();
@@ -257,6 +270,18 @@ export class VM {
 						let func = AS_FUNCTION(READ_CONSTANT());
 						let closure = newClosure(func);
 						this.push(OBJ_VAL(closure));
+
+						for (let i = 0; i < closure.upvalueCount; i++) {
+							let isLocal = READ_BYTE();
+							let index = READ_BYTE();
+
+							if (isLocal) {
+								closure.upvalues[i] = VM.captureUpvalue(VM.stack[frame.slots + index]);
+							} else {
+								closure.upvalues[i] = frame.closure.upvalues[index];
+							}
+						}
+
 						break;
 					}
 					case OpCode.OP_RETURN: {
@@ -389,6 +414,15 @@ export class VM {
 		this.runtimeError("Can only call functions and classes.");
 
 		return false;
+	}
+
+	/**
+	 * @param { Value } local 
+	 * @returns { ObjUpvalue }
+	 */
+	static captureUpvalue(local) {
+		let createdUpvalue = newUpvalue(local);
+		return createdUpvalue;
 	}
 
 	/** @param { Value } value */

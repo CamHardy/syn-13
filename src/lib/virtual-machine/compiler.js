@@ -67,7 +67,7 @@ const Precedence = Object.freeze({
  */
 
 let parser = /** @type { Parser } */ ({});
-let current = /** @type { Compiler } */ ({});
+let current = /** @type { Compiler | null } */ (null);
 let scanner = /** @type { Scanner } */ ({});
 let compilingChunk = /** @type { Chunk } */ ({});
 

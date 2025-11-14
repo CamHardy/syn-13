@@ -44,7 +44,9 @@ import { Chunk } from "./chunk.js";
 
 /**
  * @typedef { Obj & {
- *   function: ObjFunction
+ *  function: ObjFunction
+ *  upvalues: (ObjUpvalue | null)[]
+ *  upvalueCount: number
  * } } ObjClosure
  */
 
@@ -66,10 +68,19 @@ export function allocateObject(type) {
  * @returns { ObjClosure }
  */
 export function newClosure(func) {
+	/** @type { ObjUpvalue | null [] } */
+	let upvalues = new Array(func.upvalueCount);
+
+	for (let i = 0; i < func.upvalueCount; i++) {
+		upvalues[i] = null;
+	}
+
 	let closure_ = allocateObject('OBJ_CLOSURE');
 
 	let closure = Object.assign(closure_, {
-		function: func
+		function: func,
+		upvalues,
+		upvalueCount: func.upvalueCount
 	});
 
 	return closure;
@@ -155,7 +166,7 @@ export function copyString(str) {
  * @param { Value } slot 
  * @returns { ObjUpvalue }
  */
-function newUpvalue(slot) {
+export function newUpvalue(slot) {
 	let upvalue_ = allocateObject('OBJ_UPVALUE');
 
 	let upvalue = Object.assign(upvalue_, {
