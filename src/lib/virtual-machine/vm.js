@@ -328,7 +328,7 @@ export class VM {
 		VM.stack[VM.stackTop++] = value;
 	}
 
-	/** @return { Value } */
+	/** @returns { Value } */
 	static pop() {
 		return VM.stack[--VM.stackTop];
 	}

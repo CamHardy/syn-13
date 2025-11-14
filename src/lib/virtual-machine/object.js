@@ -3,7 +3,7 @@ import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
 /** @import { Value } from "./value.js" */
 
-/** @typedef { 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' } ObjType */
+/** @typedef { 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
 
 /** 
  * @typedef { Object } Obj 
@@ -34,6 +34,12 @@ import { Chunk } from "./chunk.js";
  * 	chars: string,
  * 	hash: number
  * } } ObjString
+ */
+
+/**
+ * @typedef { Obj & {
+ *  location: Value
+ * } } ObjUpvalue
  */
 
 /**
@@ -97,7 +103,7 @@ export function newNative(func) {
 /** 
  * @param { string } str 
  * @param { number } hash
- * @return { ObjString }
+ * @returns { ObjString }
  */
 export function allocateString(str, hash) {
 	let base = allocateObject('OBJ_STRING');
@@ -125,7 +131,7 @@ function hashString(key) {
 
 /** 
  * @param { string } str  
- * @return { ObjString }
+ * @returns { ObjString }
  */
 export function takeString(str) {
 	let interned = VM.strings.get(str);
@@ -136,13 +142,27 @@ export function takeString(str) {
 
 /** 
  * @param { string } str 
- * @return { ObjString }
+ * @returns { ObjString }
  */
 export function copyString(str) {
 	let interned = VM.strings.get(str);
 	if (interned) return interned;
 
 	return allocateString(str, hashString(str));
+}
+
+/**
+ * @param { Value } slot 
+ * @returns { ObjUpvalue }
+ */
+function newUpvalue(slot) {
+	let upvalue_ = allocateObject('OBJ_UPVALUE');
+
+	let upvalue = Object.assign(upvalue_, {
+		location: slot
+	});
+
+	return upvalue;
 }
 
 /** @param { ObjFunction } fn */
@@ -155,25 +175,38 @@ function printFunction(fn) {
 }
 
 /** @param { Value } value */
-export function printObject(value) {
+export function objectToString(value) {
 	switch (OBJ_TYPE(value)) {
 		case 'OBJ_CLOSURE':
-			printFunction(AS_CLOSURE(value).function);
+			return functionToString(AS_CLOSURE(value).function);
 		case 'OBJ_FUNCTION':
-			printFunction(AS_FUNCTION(value));
-			break;
+			return functionToString(AS_FUNCTION(value));
 		case 'OBJ_NATIVE':
-			console.log('<native fn>');
-			break;
+			return '<native fn>';
 		case 'OBJ_STRING':
-			console.log(AS_CSTRING(value));
-			break;
+			return AS_CSTRING(value);
+		case 'OBJ_UPVALUE':
+			return 'upvalue';
 	}
+}
+
+/**
+ * @param { ObjFunction } fn 
+ * @returns { string }
+ */
+function functionToString(fn) {
+	if (fn.name === null) return '<script';
+	return `<fn ${fn.name.chars}>`;
+}
+
+/** @param { Value } value */
+export function printObject(value) {
+	console.log(objectToString(value));
 }
 
 /** 
  * @param { Value } value 
- * @return { ObjType }
+ * @returns { ObjType }
  */
 export function OBJ_TYPE(value) { return AS_OBJ(value).type }
 
@@ -209,7 +242,7 @@ export function AS_NATIVE(value) { return AS_OBJ(value).function; }
 
 /** 
  * @param { Value } value 
- * @return { ObjString }
+ * @returns { ObjString }
  */
 export function AS_STRING(value) { return AS_OBJ(value); }
 
@@ -219,6 +252,6 @@ export function AS_CSTRING(value) { return AS_STRING(value).chars; }
 /** 
  * @param { Value } value 
  * @param { ObjType } type 
- * @return { boolean }
+ * @returns { boolean }
  */
 export function isObjType(value, type) { return IS_OBJ(value) && AS_OBJ(value).type === type; }

@@ -398,6 +398,11 @@ function resolveUpvalue(compiler, name) {
 		return addUpvalue(compiler, local, true);
 	}
 
+	let upvalue = resolveUpvalue(compiler.enclosing, name);
+	if (upvalue !== -1) {
+		return addUpvalue(compiler, upvalue, false);
+	}
+
 	return -1;
 }
 
@@ -548,6 +553,11 @@ function func(type) {
 
 	let func = endCompiler();
 	emitBytes(OpCode.OP_CLOSURE, makeConstant(OBJ_VAL(func)));
+
+	for (let i = 0; i < func.upvalueCount; i++) {
+		emitByte(compiler.upvalues[i].isLocal ? 1 : 0);
+		emitByte(compiler.upvalues[i].index);
+	}
 }
 
 function funDeclaration() {
@@ -813,6 +823,7 @@ function initCompiler(type) {
 	let compiler = {};
 	compiler.type = type;
 	compiler.locals = [];
+	compiler.upvalues = [];
 	compiler.localCount = 0;
 	compiler.scopeDepth = 0;
 	compiler.enclosing = current;

@@ -1,4 +1,6 @@
 import { OpCode } from './chunk.js';
+import { AS_FUNCTION } from './object.js';
+import { valueToString } from './value.js';
 /** @import { Chunk } from './chunk.js'; */
 
 /**
@@ -46,6 +48,10 @@ export function disassembleInstruction(chunk, offset) {
 			return constantInstruction('OP_DEFINE_GLOBAL', chunk, offset, output);
 		case OpCode.OP_SET_GLOBAL:
 			return constantInstruction('OP_SET_GLOBAL', chunk, offset, output);
+		case OpCode.OP_GET_UPVALUE:
+			return byteInstruction('OP_GET_UPVALUE', chunk, offset, output);
+		case OpCode.OP_SET_UPVALUE:
+			return byteInstruction('OP_SET_UPVALUE', chunk, offset, output);
 		case OpCode.OP_EQUAL:
 			return simpleInstruction('OP_EQUAL', offset, output);
 		case OpCode.OP_GREATER:
@@ -77,7 +83,15 @@ export function disassembleInstruction(chunk, offset) {
 		case OpCode.OP_CLOSURE:
 			offset++;
 			let constant = chunk.code[offset++];
-			console.log(`${output} ${'OP_CLOSURE'.padEnd(16)} ${String(constant).padStart(4, ' ')} ${chunk.constants.values[constant]}`);
+			console.log(`${output} ${'OP_CLOSURE'.padEnd(16)} ${String(constant).padStart(4, ' ')} ${valueToString(chunk.constants.values[constant])}`);
+			
+			let func = AS_FUNCTION(chunk.constants.values[constant]);
+			for (let j = 0; j < func.upvalueCount; j++) {
+				let isLocal = chunk.code[offset++];
+				let index = chunk.code[offset++];
+				console.log(`${String(offset - 2).padStart(4, '0')}      |                     ${isLocal ? 'local' : 'upvalue'} ${index}`);
+			}
+			
 			return offset;
 		case OpCode.OP_RETURN:
 			return simpleInstruction('OP_RETURN', offset, output);
@@ -106,7 +120,7 @@ function simpleInstruction(name, offset, output) {
  */
 function byteInstruction(name, chunk, offset, output) {
 	let slot = chunk.code[offset + 1];
-	name = name.padEnd(16);
+	name = name.padEnd(19);
 	console.log(`${output} ${name} ${slot}`);
 
 	return offset + 2;
@@ -137,7 +151,7 @@ function jumpInstruction(name, sign, chunk, offset, output) {
 function constantInstruction(name, chunk, offset, output) {
 	let constant = chunk.code[offset + 1];
 	name = name.padEnd(16);
-	console.log(`${output} ${name} ${String(constant).padStart(4, ' ')} '${chunk.constants.values[constant]}'`);
+	console.log(`${output} ${name} ${String(constant).padStart(4, ' ')} '${valueToString(chunk.constants.values[constant])}'`);
 
 	return offset + 2;
 }

@@ -1,5 +1,5 @@
 import { growCapacity, growArray } from './memory.js';
-import { printObject, AS_STRING } from './object.js';
+import { objectToString, AS_STRING } from './object.js';
 /** @import { Obj, ObjString } from "./object.js" */
 
 /** @typedef { Obj } Obj */
@@ -39,7 +39,7 @@ export function AS_OBJ(value) { return value.as.obj };
 
 /** 
  * @param { boolean } value 
- * @return { Value }
+ * @returns { Value }
  */
 export function BOOL_VAL(value) {
 	return {
@@ -51,7 +51,7 @@ export function BOOL_VAL(value) {
 }
 
 /** 
- * @return { Value }
+ * @returns { Value }
  */
 export function NIL_VAL() {
 	return {
@@ -64,7 +64,7 @@ export function NIL_VAL() {
 
 /** 
  * @param { number } value 
- * @return { Value }
+ * @returns { Value }
  */
 export function NUMBER_VAL(value) {
 	return {
@@ -77,7 +77,7 @@ export function NUMBER_VAL(value) {
 
 /** 
  * @param { Obj } value 
- * @return { Value }
+ * @returns { Value }
  */
 export function OBJ_VAL(value) {
 	return {
@@ -113,23 +113,26 @@ export class ValueArray {
 	}
 }
 
+/** 
+ * @param { Value } value
+ */
+export function valueToString(value) {
+	switch (value.type) {
+		case 'VAL_BOOL': return AS_BOOL(value) ? 'true' : 'false';
+		case 'VAL_NIL': return 'nil';
+		case 'VAL_NUMBER': return String(AS_NUMBER(value));
+		case 'VAL_OBJ': return objectToString(value);
+	}
+}
+
 /** @param { Value } value */
 export function printValue(value) {
-	switch (value.type) {
-		case 'VAL_BOOL':
-			console.log(AS_BOOL(value) ? 'true' : 'false'); break;
-		case 'VAL_NIL':
-			console.log('nil'); break;
-		case 'VAL_NUMBER':
-			console.log(AS_NUMBER(value)); break;
-		case 'VAL_OBJ':
-			printObject(value); break;
-	}
+	console.log(valueToString(value));
 }
 
 /** 
  * @param { Value } a @param { Value } b 
- * @return { boolean }
+ * @returns { boolean }
  */
 export function valuesEqual(a, b) {
 	if (a.type !== b.type) return false;
