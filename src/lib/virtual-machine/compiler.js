@@ -45,6 +45,7 @@ const Precedence = Object.freeze({
  * @typedef { Object } Local
  * @property { string } name
  * @property { number } depth
+ * @property { boolean } isCaptured
  */
 
 /**
@@ -67,7 +68,7 @@ const Precedence = Object.freeze({
  */
 
 let parser = /** @type { Parser } */ ({});
-let current = /** @type { Compiler } */ (/** @type { unknown } **/ (null));
+let current = /** @type { Compiler } */ (/** @type { unknown } */ (null));
 let scanner = /** @type { Scanner } */ ({});
 let compilingChunk = /** @type { Chunk } */ ({});
 
@@ -164,7 +165,11 @@ function endScope() {
 	current.scopeDepth--;
 
 	while (current.localCount > 0 && current.locals[current.localCount - 1].depth > current.scopeDepth) {
-		emitByte(OpCode.OP_POP);
+		if (current.locals[current.localCount - 1].isCaptured) {
+			emitByte(OpCode.OP_CLOSE_UPVALUE);
+		} else {
+			emitByte(OpCode.OP_POP);
+		}
 		current.localCount--;
 	}
 }
@@ -395,6 +400,7 @@ function resolveUpvalue(compiler, name) {
 
 	let local = resolveLocal(compiler.enclosing, name);
 	if (local !== -1) {
+		compiler.enclosing.locals[local].isCaptured = true;
 		return addUpvalue(compiler, local, true);
 	}
 
@@ -437,7 +443,11 @@ function addLocal(name) {
 		return;
 	}
 
-	current.locals[current.localCount++] = { name: name.lexeme, depth: -1 };
+	current.locals[current.localCount++] = { 
+		name: name.lexeme, 
+		depth: -1,
+		isCaptured: false 
+	};
 }
 
 function declareVariable() {
@@ -835,7 +845,11 @@ function initCompiler(type) {
 		current.function.name = copyString(parser.previous.lexeme);
 	}
 
-	current.locals[current.localCount++] = { name: "", depth: 0 };
+	current.locals[current.localCount++] = { 
+		name: "", 
+		depth: 0,
+		isCaptured: false
+	};
 
 	return compiler;
 }

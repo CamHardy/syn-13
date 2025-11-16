@@ -93,6 +93,8 @@ export function disassembleInstruction(chunk, offset) {
 			}
 			
 			return offset;
+		case OpCode.OP_CLOSE_UPVALUE:
+			return simpleInstruction('OP_CLOSE_UPVALUE', offset, output);
 		case OpCode.OP_RETURN:
 			return simpleInstruction('OP_RETURN', offset, output);
 		default:
