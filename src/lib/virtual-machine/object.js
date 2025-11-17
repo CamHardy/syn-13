@@ -39,6 +39,7 @@ import { Chunk } from "./chunk.js";
 /**
  * @typedef { Obj & {
  *  location: Value
+ *  next: ObjUpvalue | null
  * } } ObjUpvalue
  */
 
@@ -170,7 +171,8 @@ export function newUpvalue(slot) {
 	let upvalue_ = allocateObject('OBJ_UPVALUE');
 
 	let upvalue = Object.assign(upvalue_, {
-		location: slot
+		location: slot,
+		next: null
 	});
 
 	return upvalue;

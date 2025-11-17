@@ -71,14 +71,15 @@ export class VM {
 	static globals;
 	/** @type { Table<string, ObjString> } */
 	static strings;
-	/** @type { Obj | null} */
+	/** @type { ObjUpvalue[] } */
+	static openUpvalues;
+	/** @type { Obj | null } */
 	static objects;
 
 
 	constructor() {
 		VM.resetStack();
 		VM.frames = [];
-		VM.frameCount = 0;
 		VM.stack = new Array(STACK_MAX);
 		VM.objects = null;
 		VM.globals = new Table();
@@ -310,6 +311,7 @@ export class VM {
 	static resetStack() {
 		this.stackTop = 0;
 		this.frameCount = 0;
+		this.openUpvalues = [];
 	}
 
 	/**
@@ -421,7 +423,26 @@ export class VM {
 	 * @returns { ObjUpvalue }
 	 */
 	static captureUpvalue(local) {
+		let prevUpvalue = null;
+		let upvalue = VM.openUpvalues[0];
+
+		while (upvalue !== null && upvalue.location > local) {
+			prevUpvalue = upvalue;
+			upvalue = /** @type ObjUpvalue */ (upvalue.next);
+		}
+
+		if (upvalue !== null && upvalue.location === local) {
+			return upvalue;
+		}
+
 		let createdUpvalue = newUpvalue(local);
+		createdUpvalue.next = upvalue;
+
+		if (prevUpvalue === null) {
+			VM.openUpvalues[0] = createdUpvalue;
+		} else {
+			prevUpvalue.next = createdUpvalue;
+		}
 		return createdUpvalue;
 	}
 
