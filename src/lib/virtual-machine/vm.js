@@ -71,7 +71,7 @@ export class VM {
 	static globals;
 	/** @type { Table<string, ObjString> } */
 	static strings;
-	/** @type { ObjUpvalue[] } */
+	/** @type { (ObjUpvalue | null)[] } */
 	static openUpvalues;
 	/** @type { Obj | null } */
 	static objects;
@@ -199,13 +199,16 @@ export class VM {
 					case OpCode.OP_GET_UPVALUE: {
 						let slot = READ_BYTE();
 						let upvalue = frame.closure.upvalues[slot];
-						if (upvalue) this.push(upvalue.location);
+						if (upvalue) this.push(upvalue.location === null ? upvalue.closed : VM.stack[upvalue.location]);
 						break;
 					}
 					case OpCode.OP_SET_UPVALUE: {
 						let slot = READ_BYTE();
 						let upvalue = frame.closure.upvalues[slot];
-						if (upvalue) upvalue.location = this.peek(0);
+						if (upvalue) {
+							if (upvalue.location === null) upvalue.closed = this.peek(0);
+							else VM.stack[upvalue.location] = this.peek(0);
+						}
 						break;
 					}
 					case OpCode.OP_EQUAL: {
@@ -277,7 +280,7 @@ export class VM {
 							let index = READ_BYTE();
 
 							if (isLocal) {
-								closure.upvalues[i] = VM.captureUpvalue(VM.stack[frame.slots + index]);
+								closure.upvalues[i] = VM.captureUpvalue(frame.slots + index);
 							} else {
 								closure.upvalues[i] = frame.closure.upvalues[index];
 							}
@@ -285,8 +288,13 @@ export class VM {
 
 						break;
 					}
+					case OpCode.OP_CLOSE_UPVALUE:
+						this.closeUpvalues(VM.stackTop - 1);
+						this.pop();
+						break;
 					case OpCode.OP_RETURN: {
 						let result = this.pop();
+						this.closeUpvalues(frame.slots);
 						VM.frameCount--;
 
 						if (VM.frameCount === 0) {
@@ -419,14 +427,14 @@ export class VM {
 	}
 
 	/**
-	 * @param { Value } local 
+	 * @param { number } local 
 	 * @returns { ObjUpvalue }
 	 */
 	static captureUpvalue(local) {
 		let prevUpvalue = null;
 		let upvalue = VM.openUpvalues[0];
 
-		while (upvalue !== null && upvalue.location > local) {
+		while (upvalue !== null && upvalue.location !== null && upvalue.location > local) {
 			prevUpvalue = upvalue;
 			upvalue = /** @type ObjUpvalue */ (upvalue.next);
 		}
@@ -444,6 +452,16 @@ export class VM {
 			prevUpvalue.next = createdUpvalue;
 		}
 		return createdUpvalue;
+	}
+
+	/** @param { number } last */
+	static closeUpvalues(last) {
+		let upvalue = VM.openUpvalues[0];
+		while (upvalue !== null && upvalue.location !== null && upvalue.location >= last) {
+			upvalue.closed = VM.stack[upvalue.location];
+			upvalue.location = null;
+			VM.openUpvalues[0] = upvalue.next;
+		}
 	}
 
 	/** @param { Value } value */

@@ -1,4 +1,4 @@
-import { AS_OBJ, IS_OBJ } from './value.js';
+import { AS_OBJ, IS_OBJ, NIL_VAL } from './value.js';
 import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
 /** @import { Value } from "./value.js" */
@@ -38,7 +38,8 @@ import { Chunk } from "./chunk.js";
 
 /**
  * @typedef { Obj & {
- *  location: Value
+ *  location: number | null
+ *  closed: Value
  *  next: ObjUpvalue | null
  * } } ObjUpvalue
  */
@@ -164,13 +165,14 @@ export function copyString(str) {
 }
 
 /**
- * @param { Value } slot 
+ * @param { number } slot 
  * @returns { ObjUpvalue }
  */
 export function newUpvalue(slot) {
 	let upvalue_ = allocateObject('OBJ_UPVALUE');
 
 	let upvalue = Object.assign(upvalue_, {
+		closed: NIL_VAL(),
 		location: slot,
 		next: null
 	});

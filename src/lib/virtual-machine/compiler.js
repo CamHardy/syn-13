@@ -68,7 +68,7 @@ const Precedence = Object.freeze({
  */
 
 let parser = /** @type { Parser } */ ({});
-let current = /** @type { Compiler } */ (/** @type { unknown } */ (null));
+let current = /** @type { Compiler } */ ({});
 let scanner = /** @type { Scanner } */ ({});
 let compilingChunk = /** @type { Chunk } */ ({});
 
@@ -168,7 +168,7 @@ function endScope() {
 		if (current.locals[current.localCount - 1].isCaptured) {
 			emitByte(OpCode.OP_CLOSE_UPVALUE);
 		} else {
-			emitByte(OpCode.OP_POP);
+		emitByte(OpCode.OP_POP);
 		}
 		current.localCount--;
 	}
@@ -393,17 +393,17 @@ function resolveLocal(compiler, name) {
 /**
  * @param { Compiler } compiler 
  * @param { Token } name 
- * @returns { number }
  */
 function resolveUpvalue(compiler, name) {
-	if (compiler.enclosing === null) return -1;
-
+	if (compiler.enclosing === undefined) return -1;
+	
 	let local = resolveLocal(compiler.enclosing, name);
 	if (local !== -1) {
 		compiler.enclosing.locals[local].isCaptured = true;
 		return addUpvalue(compiler, local, true);
 	}
 
+	/** @type { number } */
 	let upvalue = resolveUpvalue(compiler.enclosing, name);
 	if (upvalue !== -1) {
 		return addUpvalue(compiler, upvalue, false);
@@ -426,8 +426,8 @@ function addUpvalue(compiler, index, isLocal) {
 		if (upvalue.index === index && upvalue.isLocal === isLocal) return i;
 	}
 
-	if (upvalueCount === 256) {
-		error('Too many closure variables in fucnction.');
+	if (upvalueCount === 255) {
+		error('Too many closure variables in function.');
 		return 0;
 	}
 
@@ -438,7 +438,7 @@ function addUpvalue(compiler, index, isLocal) {
 
 /** @param { Token } name */
 function addLocal(name) {
-	if (current.localCount === 256) {
+	if (current.localCount === 255) {
 		error("Too many local variables in function.");
 		return;
 	}
@@ -832,8 +832,8 @@ function initCompiler(type) {
 	/** @type { Compiler } */
 	let compiler = {};
 	compiler.type = type;
-	compiler.locals = [];
 	compiler.upvalues = [];
+	compiler.locals = [];
 	compiler.localCount = 0;
 	compiler.scopeDepth = 0;
 	compiler.enclosing = current;
