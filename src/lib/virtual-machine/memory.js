@@ -1,5 +1,4 @@
 import { VM } from './vm.js';
-/** @import { Obj, ObjString } from "./object.js" */
 
 /** @param { number } capacity */
 export function growCapacity(capacity) {
@@ -19,3 +18,5 @@ export function growArray(array, capacity) {
 export function freeObjects() {
 	VM.objects = null;
 }
+
+export function collectGarbage() { }
