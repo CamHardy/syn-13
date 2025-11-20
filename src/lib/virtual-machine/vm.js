@@ -313,13 +313,14 @@ export class VM {
 			}
 		} catch (e) {
 			if (e === RUNTIME_ERROR) return InterpretResult.INTERPRET_RUNTIME_ERROR;
+			throw e;
 		}
 	}
 
 	static resetStack() {
 		this.stackTop = 0;
 		this.frameCount = 0;
-		this.openUpvalues = [];
+		this.openUpvalues = [null];
 	}
 
 	/**
@@ -461,6 +462,7 @@ export class VM {
 			upvalue.closed = VM.stack[upvalue.location];
 			upvalue.location = null;
 			VM.openUpvalues[0] = upvalue.next;
+			upvalue = VM.openUpvalues[0];
 		}
 	}
 
