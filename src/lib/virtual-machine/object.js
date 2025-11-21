@@ -1,6 +1,7 @@
 import { AS_OBJ, IS_OBJ, NIL_VAL } from './value.js';
 import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
+import { DEBUG_LOG_GC } from "./common.js";
 /** @import { Value } from "./value.js" */
 
 /** @typedef { 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
@@ -57,11 +58,17 @@ import { Chunk } from "./chunk.js";
  * @returns { Obj }
  */
 export function allocateObject(type) {
-	let object = { 
-		type, 
-		next: VM.objects};
+	let object = {
+		type,
+		next: VM.objects
+	};
 
 	VM.objects = object;
+
+	if (DEBUG_LOG_GC) {
+		console.log(`${object} allocate for ${type}`);
+	}
+
 	return object;
 }
 
@@ -120,7 +127,7 @@ export function newNative(func) {
  */
 export function allocateString(str, hash) {
 	let base = allocateObject('OBJ_STRING');
-	
+
 	let string = Object.assign(base, {
 		length: str.length,
 		chars: str,
