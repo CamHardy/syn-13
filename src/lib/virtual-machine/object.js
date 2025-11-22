@@ -9,6 +9,7 @@ import { DEBUG_LOG_GC } from "./common.js";
 /** 
  * @typedef { Object } Obj 
  * @property { ObjType } type
+ * @property { boolean } isMarked
  * @property { Obj | null } next
  */
 
@@ -60,6 +61,7 @@ import { DEBUG_LOG_GC } from "./common.js";
 export function allocateObject(type) {
 	let object = {
 		type,
+		isMarked: false,
 		next: VM.objects
 	};
 

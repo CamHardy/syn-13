@@ -1,6 +1,7 @@
 import { VM } from './vm.js';
 import { DEBUG_LOG_GC } from './common.js';
-import { IS_OBJ, AS_OBJ } from './value.js';
+import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
+import { markTable } from "./table.js";
 /** @import { Value } from "./value.js" */
 /** @import { Obj } from "./object.js" */
 
@@ -28,12 +29,19 @@ export function freeObjects() {
 }
 
 /** @param { Obj } object */
-function markObject(object) {
+export function markObject(object) {
 	if (object === null) return;
+
+	if (DEBUG_LOG_GC) {
+		console.log(`${object} mark`);
+		console.log(OBJ_VAL(object));
+	}
+
+	object.isMarked = true;
 }
 
 /** @param { Value } value */
-function markValue(value) {
+export function markValue(value) {
 	if (IS_OBJ(value)) markObject(AS_OBJ(value));
 
 }
@@ -42,6 +50,8 @@ function markRoots() {
 	for (let slot = 0; slot < VM.stackTop; slot++) {
 		markValue(VM.stack[slot]);
 	}
+
+	markTable(VM.globals);
 }
 
 export function collectGarbage() {
