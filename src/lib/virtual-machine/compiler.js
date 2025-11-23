@@ -4,6 +4,7 @@ import { disassembleChunk } from './debug.js';
 import { DEBUG_PRINT_CODE } from './common.js';
 import { NUMBER_VAL, OBJ_VAL } from './value.js';
 import { copyString, newFunction } from './object.js';
+import { markObject } from './memory.js';
 /** @import { Chunk } from './chunk.js' */
 /** @import { Token, TokenType } from './scanner.js' */
 /** @import { Value } from "./value.js" */
@@ -89,7 +90,7 @@ export function compile(source) {
 	parser.panicMode = false;
 
 	advance();
-	
+
 	while (!match('TOKEN_EOF')) {
 		declaration();
 	}
@@ -99,10 +100,19 @@ export function compile(source) {
 	return parser.hadError ? null : fn;
 }
 
+export function markCompilerRoots() {
+	let compiler = current;
+
+	while (compiler !== null) {
+		markObject(compiler.function);
+		compiler = compiler.enclosing;
+	}
+}
+
 function advance() {
 	parser.previous = parser.current;
 
-	for (;;) {
+	for (; ;) {
 		parser.current = scanner.scanToken();
 		if (parser.current.type !== 'TOKEN_ERROR') break;
 
@@ -168,7 +178,7 @@ function endScope() {
 		if (current.locals[current.localCount - 1].isCaptured) {
 			emitByte(OpCode.OP_CLOSE_UPVALUE);
 		} else {
-		emitByte(OpCode.OP_POP);
+			emitByte(OpCode.OP_POP);
 		}
 		current.localCount--;
 	}
@@ -227,7 +237,7 @@ function number(canAssign) {
 function or_(canAssign) {
 	let elseJump = emitJump(OpCode.OP_JUMP_IF_FALSE);
 	let endJump = emitJump(OpCode.OP_JUMP);
-	
+
 	patchJump(elseJump);
 	emitByte(OpCode.OP_POP);
 
@@ -290,46 +300,46 @@ function unary(canAssign) {
 
 /** @type { Record<TokenType, ParseRule> } */
 let rules = {
-	['TOKEN_LEFT_PAREN']: 		{ prefix: grouping, infix: call, 		precedence: Precedence.PREC_CALL },
-	['TOKEN_RIGHT_PAREN']: 		{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_LEFT_BRACE']: 		{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_RIGHT_BRACE']: 		{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_COMMA']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_DOT']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_MINUS']: 					{ prefix: unary, 		infix: binary, 	precedence: Precedence.PREC_TERM },
-	['TOKEN_PLUS']: 					{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_TERM },
-	['TOKEN_SEMICOLON']: 			{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_SLASH']: 					{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_FACTOR },
-	['TOKEN_STAR']: 					{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_FACTOR },
-	['TOKEN_BANG']: 					{ prefix: unary, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_BANG_EQUAL']: 		{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_EQUALITY },
-	['TOKEN_EQUAL']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_EQUAL_EQUAL']: 		{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_EQUALITY },
-	['TOKEN_GREATER']: 				{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
-	['TOKEN_GREATER_EQUAL']: 	{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
-	['TOKEN_LESS']: 					{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
-	['TOKEN_LESS_EQUAL']: 		{ prefix: null, 		infix: binary, 	precedence: Precedence.PREC_COMPARISON },
-	['TOKEN_IDENTIFIER']: 		{ prefix: variable, infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_STRING']: 				{ prefix: string, 	infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_NUMBER']: 				{ prefix: number, 	infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_AND']: 						{ prefix: null, 		infix: and_, 		precedence: Precedence.PREC_AND },
-	['TOKEN_CLASS']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_ELSE']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_FALSE']: 					{ prefix: literal, 	infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_FOR']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_FUN']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_IF']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_NIL']: 						{ prefix: literal, 	infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_OR']: 						{ prefix: null, 		infix: or_, 		precedence: Precedence.PREC_OR },
-	['TOKEN_PRINT']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_RETURN']: 				{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_SUPER']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_THIS']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_TRUE']: 					{ prefix: literal, 	infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_VAR']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_WHILE']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_ERROR']: 					{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE },
-	['TOKEN_EOF']: 						{ prefix: null, 		infix: null, 		precedence: Precedence.PREC_NONE }
+	['TOKEN_LEFT_PAREN']: { prefix: grouping, infix: call, precedence: Precedence.PREC_CALL },
+	['TOKEN_RIGHT_PAREN']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_LEFT_BRACE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_RIGHT_BRACE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_COMMA']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_DOT']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_MINUS']: { prefix: unary, infix: binary, precedence: Precedence.PREC_TERM },
+	['TOKEN_PLUS']: { prefix: null, infix: binary, precedence: Precedence.PREC_TERM },
+	['TOKEN_SEMICOLON']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_SLASH']: { prefix: null, infix: binary, precedence: Precedence.PREC_FACTOR },
+	['TOKEN_STAR']: { prefix: null, infix: binary, precedence: Precedence.PREC_FACTOR },
+	['TOKEN_BANG']: { prefix: unary, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_BANG_EQUAL']: { prefix: null, infix: binary, precedence: Precedence.PREC_EQUALITY },
+	['TOKEN_EQUAL']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_EQUAL_EQUAL']: { prefix: null, infix: binary, precedence: Precedence.PREC_EQUALITY },
+	['TOKEN_GREATER']: { prefix: null, infix: binary, precedence: Precedence.PREC_COMPARISON },
+	['TOKEN_GREATER_EQUAL']: { prefix: null, infix: binary, precedence: Precedence.PREC_COMPARISON },
+	['TOKEN_LESS']: { prefix: null, infix: binary, precedence: Precedence.PREC_COMPARISON },
+	['TOKEN_LESS_EQUAL']: { prefix: null, infix: binary, precedence: Precedence.PREC_COMPARISON },
+	['TOKEN_IDENTIFIER']: { prefix: variable, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_STRING']: { prefix: string, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_NUMBER']: { prefix: number, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_AND']: { prefix: null, infix: and_, precedence: Precedence.PREC_AND },
+	['TOKEN_CLASS']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_ELSE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_FALSE']: { prefix: literal, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_FOR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_FUN']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_IF']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_NIL']: { prefix: literal, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_OR']: { prefix: null, infix: or_, precedence: Precedence.PREC_OR },
+	['TOKEN_PRINT']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_RETURN']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_SUPER']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_THIS']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_TRUE']: { prefix: literal, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_VAR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_WHILE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_ERROR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_EOF']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE }
 }
 
 /** @param { Precedence } precedence */
@@ -346,7 +356,7 @@ function parsePrecedence(precedence) {
 
 	while (precedence <= getRule(parser.current.type).precedence) {
 		advance();
-		let infixRule = getRule(parser.previous.type).infix ?? (() => {});
+		let infixRule = getRule(parser.previous.type).infix ?? (() => { });
 		infixRule(canAssign);
 	}
 
@@ -396,7 +406,7 @@ function resolveLocal(compiler, name) {
  */
 function resolveUpvalue(compiler, name) {
 	if (compiler.enclosing === undefined) return -1;
-	
+
 	let local = resolveLocal(compiler.enclosing, name);
 	if (local !== -1) {
 		compiler.enclosing.locals[local].isCaptured = true;
@@ -443,10 +453,10 @@ function addLocal(name) {
 		return;
 	}
 
-	current.locals[current.localCount++] = { 
-		name: name.lexeme, 
+	current.locals[current.localCount++] = {
+		name: name.lexeme,
 		depth: -1,
-		isCaptured: false 
+		isCaptured: false
 	};
 }
 
@@ -693,7 +703,7 @@ function whileStatement() {
 	emitByte(OpCode.OP_POP);
 	statement();
 	emitLoop(loopStart);
-	
+
 	patchJump(exitJump);
 	emitByte(OpCode.OP_POP);
 }
@@ -845,8 +855,8 @@ function initCompiler(type) {
 		current.function.name = copyString(parser.previous.lexeme);
 	}
 
-	current.locals[current.localCount++] = { 
-		name: "", 
+	current.locals[current.localCount++] = {
+		name: "",
 		depth: 0,
 		isCaptured: false
 	};

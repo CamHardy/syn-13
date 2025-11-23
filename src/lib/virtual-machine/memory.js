@@ -2,6 +2,7 @@ import { VM } from './vm.js';
 import { DEBUG_LOG_GC } from './common.js';
 import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
 import { markTable } from "./table.js";
+import { markCompilerRoots } from "./compiler.js";
 /** @import { Value } from "./value.js" */
 /** @import { Obj } from "./object.js" */
 
@@ -51,7 +52,16 @@ function markRoots() {
 		markValue(VM.stack[slot]);
 	}
 
+	for (let i = 0; i < VM.frameCount; i++) {
+		markObject(VM.frames[i].closure);
+	}
+
+	for (let upvalue = VM.openUpvalues[0]; upvalue !== null; upvalue = upvalue.next) {
+		markObject(upvalue);
+	}
+
 	markTable(VM.globals);
+	markCompilerRoots();
 }
 
 export function collectGarbage() {
