@@ -39,6 +39,8 @@ export function markObject(object) {
 	}
 
 	object.isMarked = true;
+
+	VM.grayStack.push(object);
 }
 
 /** @param { Value } value */

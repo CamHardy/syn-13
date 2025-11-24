@@ -4,11 +4,11 @@ import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
 import { freeObjects } from './memory.js';
 import { Table } from './table.js';
-import { 
-	AS_STRING, 
-	IS_STRING, 
+import {
+	AS_STRING,
+	IS_STRING,
 	takeString,
-	OBJ_TYPE, 
+	OBJ_TYPE,
 	AS_CLOSURE,
 	AS_FUNCTION,
 	AS_NATIVE,
@@ -17,18 +17,18 @@ import {
 	newClosure,
 	newUpvalue
 } from './object.js';
-import { 
-	BOOL_VAL, 
-	NIL_VAL, 
-	NUMBER_VAL, 
-	OBJ_VAL, 
+import {
+	BOOL_VAL,
+	NIL_VAL,
+	NUMBER_VAL,
+	OBJ_VAL,
 	AS_BOOL,
-	AS_NUMBER, 
+	AS_NUMBER,
 	IS_BOOL,
 	IS_NIL,
 	IS_NUMBER,
 	valuesEqual,
-	printValue, 
+	printValue,
 	IS_OBJ,
 } from './value.js';
 /** @import { Value } from './value.js' */
@@ -75,13 +75,15 @@ export class VM {
 	static openUpvalues;
 	/** @type { Obj | null } */
 	static objects;
-
+	/** @type { Obj[] } */
+	static grayStack;
 
 	constructor() {
 		VM.resetStack();
 		VM.frames = [];
 		VM.stack = new Array(STACK_MAX);
 		VM.objects = null;
+		VM.grayStack = [];
 		VM.globals = new Table();
 		VM.strings = new Table();
 
@@ -135,7 +137,7 @@ export class VM {
 		};
 
 		try {
-			for (;;) {
+			for (; ;) {
 				if (DEBUG_TRACE_EXECUTION) {
 					let print = '          ';
 					for (let slot = 0; slot < this.stackTop; slot++) {
@@ -144,7 +146,7 @@ export class VM {
 					console.log(print);
 					disassembleInstruction(frame.closure.function.chunk, frame.ip);
 				}
-				
+
 				switch (READ_BYTE()) {
 					case OpCode.OP_CONSTANT:
 						const constant = READ_CONSTANT();
@@ -159,12 +161,12 @@ export class VM {
 						this.pop(); break;
 					case OpCode.OP_GET_LOCAL: {
 						let slot = READ_BYTE();
-						VM.push(VM.stack[frame.slots + slot]); 
+						VM.push(VM.stack[frame.slots + slot]);
 						break;
 					}
 					case OpCode.OP_SET_LOCAL: {
 						let slot = READ_BYTE();
-						VM.stack[frame.slots + slot] = this.peek(0); 
+						VM.stack[frame.slots + slot] = this.peek(0);
 						break;
 					}
 					case OpCode.OP_GET_GLOBAL: {
@@ -176,13 +178,13 @@ export class VM {
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
 
-						VM.push(value); 
+						VM.push(value);
 						break;
 					}
 					case OpCode.OP_DEFINE_GLOBAL: {
 						let name = READ_STRING();
 						VM.globals.set(name, this.peek(0));
-						this.pop(); 
+						this.pop();
 						break;
 					}
 					case OpCode.OP_SET_GLOBAL: {
@@ -228,7 +230,7 @@ export class VM {
 						} else {
 							VM.runtimeError('Operands must be two numbers or two strings.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
-						} 
+						}
 						break;
 					}
 					case OpCode.OP_SUBTRACT: BINARY_OP(NUMBER_VAL, (a, b) => a - b); break;
@@ -241,7 +243,7 @@ export class VM {
 							VM.runtimeError('Operand must be a number.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
-						this.push(NUMBER_VAL(-AS_NUMBER(this.pop()))); 
+						this.push(NUMBER_VAL(-AS_NUMBER(this.pop())));
 						break;
 					}
 					case OpCode.OP_PRINT:
@@ -333,19 +335,19 @@ export class VM {
 		for (let i = VM.frameCount - 1; i >= 0; i--) {
 			let frame = VM.frames[i];
 			let func = frame.closure.function;
-			let instruction = frame.ip -1;
+			let instruction = frame.ip - 1;
 
 			if (func.name === null) {
-					console.error(`[line ${func.chunk.lines[instruction]}] in script`);
-				} else {
-						console.error(`[line ${func.chunk.lines[instruction]}] in ${func.name.chars}()`);
-				}
+				console.error(`[line ${func.chunk.lines[instruction]}] in script`);
+			} else {
+				console.error(`[line ${func.chunk.lines[instruction]}] in ${func.name.chars}()`);
+			}
 		}
 
 		this.resetStack();
 
 		throw RUNTIME_ERROR;
-  }
+	}
 
 	/**
 	 * @param { string } name 
@@ -407,7 +409,7 @@ export class VM {
 	static callValue(callee, argCount) {
 		if (IS_OBJ(callee)) {
 			switch (OBJ_TYPE(callee)) {
-				case 'OBJ_CLOSURE' :
+				case 'OBJ_CLOSURE':
 					return this.call(AS_CLOSURE(callee), argCount);
 				case 'OBJ_FUNCTION':
 					return this.call(AS_CLOSURE(callee), argCount);
@@ -474,7 +476,7 @@ export class VM {
 	static concatenate() {
 		let b = AS_STRING(this.pop());
 		let a = AS_STRING(this.pop());
-		
+
 		let result = takeString(a.chars + b.chars);
 
 		this.push(OBJ_VAL(result));
