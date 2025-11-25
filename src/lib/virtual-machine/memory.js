@@ -113,6 +113,30 @@ function traceReferences() {
 	}
 }
 
+function sweep() {
+	let previous = null;
+	let object = VM.objects;
+
+	while (object !== null) {
+		if (object.isMarked) {
+			object.isMarked = false;
+			previous = object;
+			object = object.next;
+		} else {
+			/** @type { Obj | null } */
+			let unreached = object;
+			object = object.next;
+			if (previous !== null) {
+				previous.next = object;
+			} else {
+				VM.objects = object;
+			}
+
+			unreached = null;
+		}
+	}
+}
+
 export function collectGarbage() {
 	if (DEBUG_LOG_GC) {
 		console.log('-- gc begin');
@@ -120,6 +144,7 @@ export function collectGarbage() {
 
 	markRoots();
 	traceReferences();
+	sweep();
 
 	if (DEBUG_LOG_GC) {
 		console.log('-- gc end');
