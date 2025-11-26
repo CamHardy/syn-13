@@ -47,3 +47,12 @@ export function markTable(table) {
     markValue(value);
   }
 }
+
+/** @param { Table<string, Obj> } table */
+export function tableRemoveWhite(table) {
+  for (const [key, value] of table.entries) {
+    if (!value.isMarked) {
+      table.delete(key);
+    }
+  }
+}

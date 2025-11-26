@@ -1,7 +1,7 @@
 import { VM } from './vm.js';
 import { DEBUG_LOG_GC } from './common.js';
 import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
-import { markTable } from "./table.js";
+import { markTable, tableRemoveWhite } from "./table.js";
 import { markCompilerRoots } from "./compiler.js";
 /** @import { Value, ValueArray } from "./value.js" */
 /** @import { Obj, ObjClosure, ObjFunction, ObjUpvalue } from "./object.js" */
@@ -144,6 +144,7 @@ export function collectGarbage() {
 
 	markRoots();
 	traceReferences();
+	tableRemoveWhite(VM.strings);
 	sweep();
 
 	if (DEBUG_LOG_GC) {
