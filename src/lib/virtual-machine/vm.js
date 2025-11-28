@@ -77,6 +77,10 @@ export class VM {
 	static objects;
 	/** @type { Obj[] } */
 	static grayStack;
+	/** @type { number } */
+	static bytesAllocated;
+	/** @type { number } */
+	static nextGC;
 
 	constructor() {
 		VM.resetStack();
@@ -86,6 +90,8 @@ export class VM {
 		VM.grayStack = [];
 		VM.globals = new Table();
 		VM.strings = new Table();
+		VM.bytesAllocated = 0;
+		VM.nextGC = 256;
 
 		VM.defineNative('clock', clockNative);
 	}

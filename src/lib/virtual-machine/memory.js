@@ -6,6 +6,8 @@ import { markCompilerRoots } from "./compiler.js";
 /** @import { Value, ValueArray } from "./value.js" */
 /** @import { Obj, ObjClosure, ObjFunction, ObjUpvalue } from "./object.js" */
 
+const GC_HEAP_GROW_FACTOR = 2;
+
 /** @param { number } capacity */
 export function growCapacity(capacity) {
 	return (capacity < 8) ? 8 : capacity * 2;
@@ -138,8 +140,10 @@ function sweep() {
 }
 
 export function collectGarbage() {
+	let before = 0;
 	if (DEBUG_LOG_GC) {
 		console.log('-- gc begin');
+		before = VM.bytesAllocated;
 	}
 
 	markRoots();
@@ -147,7 +151,10 @@ export function collectGarbage() {
 	tableRemoveWhite(VM.strings);
 	sweep();
 
+	VM.nextGC = VM.bytesAllocated * GC_HEAP_GROW_FACTOR;
+
 	if (DEBUG_LOG_GC) {
 		console.log('-- gc end');
+		console.log(`   collected ${before - VM.bytesAllocated} (from ${before} to ${VM.bytesAllocated}) next at ${VM.nextGC}`);
 	}
 }

@@ -1,7 +1,8 @@
 import { AS_OBJ, IS_OBJ, NIL_VAL } from './value.js';
 import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
-import { DEBUG_LOG_GC } from "./common.js";
+import { DEBUG_LOG_GC, DEBUG_STRESS_GC } from "./common.js";
+import { collectGarbage } from "./memory.js";
 /** @import { Value } from "./value.js" */
 
 /** @typedef { 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
@@ -59,6 +60,13 @@ import { DEBUG_LOG_GC } from "./common.js";
  * @returns { Obj }
  */
 export function allocateObject(type) {
+	if (DEBUG_STRESS_GC) collectGarbage();
+	VM.bytesAllocated++;
+
+	if (VM.bytesAllocated > VM.nextGC) {
+		collectGarbage();
+	}
+
 	let object = {
 		type,
 		isMarked: false,
