@@ -1,5 +1,6 @@
 import { growArray, growCapacity } from "./memory.js";
 import { ValueArray } from "./value.js";
+import { VM } from "./vm.js";
 /** @import { Value } from "./value.js" */
 
 /** @enum { number } */
@@ -62,7 +63,7 @@ export class Chunk {
 			this.code = growArray(this.code, this.capacity);
 			this.lines.length = this.capacity;
 		}
-		
+
 		this.code[this.count] = byte;
 		this.lines[this.count] = line;
 		this.count++;
@@ -70,7 +71,9 @@ export class Chunk {
 
 	/** @param { Value } value */
 	addConstant(value) {
+		VM.push(value);
 		this.constants.write(value);
+		VM.pop();
 		return this.constants.count - 1;
 	}
 }
