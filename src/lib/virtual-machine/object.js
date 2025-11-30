@@ -1,4 +1,4 @@
-import { AS_OBJ, IS_OBJ, NIL_VAL } from './value.js';
+import { AS_OBJ, IS_OBJ, NIL_VAL, OBJ_VAL } from './value.js';
 import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
 import { DEBUG_LOG_GC, DEBUG_STRESS_GC } from "./common.js";
@@ -144,7 +144,9 @@ export function allocateString(str, hash) {
 		hash
 	});
 
+	VM.push(OBJ_VAL(string));
 	VM.strings.set(str, string);
+	VM.pop();
 	return string;
 }
 
