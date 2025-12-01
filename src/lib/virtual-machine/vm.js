@@ -480,11 +480,12 @@ export class VM {
 	}
 
 	static concatenate() {
-		let b = AS_STRING(this.pop());
-		let a = AS_STRING(this.pop());
+		let b = AS_STRING(this.peek(0));
+		let a = AS_STRING(this.peek(1));
 
 		let result = takeString(a.chars + b.chars);
-
+		this.pop();
+		this.pop();
 		this.push(OBJ_VAL(result));
 	}
 } 
