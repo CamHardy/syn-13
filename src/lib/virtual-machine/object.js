@@ -5,7 +5,7 @@ import { DEBUG_LOG_GC, DEBUG_STRESS_GC } from "./common.js";
 import { collectGarbage } from "./memory.js";
 /** @import { Value } from "./value.js" */
 
-/** @typedef { 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
+/** @typedef { 'OBJ_CLASS' | 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
 
 /** 
  * @typedef { Object } Obj 
@@ -56,6 +56,12 @@ import { collectGarbage } from "./memory.js";
  */
 
 /**
+ * @typedef { Obj & {
+ *  name: ObjString
+ * } } ObjClass
+ */
+
+/**
  * @param { ObjType } type
  * @returns { Obj }
  */
@@ -80,6 +86,17 @@ export function allocateObject(type) {
 	}
 
 	return object;
+}
+
+/** @param { ObjString } name */
+export function newClass(name) {
+	let klass_ = allocateObject('OBJ_CLASS');
+
+	let klass = Object.assign(klass_, {
+		name
+	});
+
+	return klass;
 }
 
 /** 
@@ -211,6 +228,8 @@ function printFunction(fn) {
 /** @param { Value } value */
 export function objectToString(value) {
 	switch (OBJ_TYPE(value)) {
+		case 'OBJ_CLASS':
+			return AS_CLASS(value).name.chars;
 		case 'OBJ_CLOSURE':
 			return functionToString(AS_CLOSURE(value).function);
 		case 'OBJ_FUNCTION':
@@ -242,7 +261,10 @@ export function printObject(value) {
  * @param { Value } value 
  * @returns { ObjType }
  */
-export function OBJ_TYPE(value) { return AS_OBJ(value).type }
+export function OBJ_TYPE(value) { return AS_OBJ(value).type; }
+
+/** @param { Value } value */
+export function IS_CLASS(value) { return isObjType(value, 'OBJ_CLASS'); }
 
 /** @param { Value } value */
 export function IS_CLOSURE(value) { return isObjType(value, 'OBJ_CLOSURE'); }
@@ -255,6 +277,12 @@ export function IS_NATIVE(value) { return isObjType(value, 'OBJ_NATIVE'); }
 
 /** @param { Value } value */
 export function IS_STRING(value) { return isObjType(value, 'OBJ_STRING'); }
+
+/**
+ * @param { Value } value
+ * @returns { ObjClass }
+ */
+export function AS_CLASS(value) { return AS_OBJ(value); }
 
 /**
  * @param { Value } value 

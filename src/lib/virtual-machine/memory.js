@@ -4,7 +4,7 @@ import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
 import { markTable, tableRemoveWhite } from "./table.js";
 import { markCompilerRoots } from "./compiler.js";
 /** @import { Value, ValueArray } from "./value.js" */
-/** @import { Obj, ObjClosure, ObjFunction, ObjUpvalue } from "./object.js" */
+/** @import { Obj, ObjClass, ObjClosure, ObjFunction, ObjUpvalue } from "./object.js" */
 
 const GC_HEAP_GROW_FACTOR = 2;
 
@@ -84,6 +84,11 @@ function blackenObject(object) {
 	}
 
 	switch (object.type) {
+		case 'OBJ_CLASS': {
+			let klass = /** @type { ObjClass } */(object);
+			markObject(klass.name);
+			break;
+		}
 		case 'OBJ_CLOSURE': {
 			let closure = /** @type { ObjClosure } */ (object);
 			markObject(closure.function);
@@ -128,6 +133,8 @@ function sweep() {
 			/** @type { Obj | null } */
 			let unreached = object;
 			object = object.next;
+			VM.bytesAllocated--;
+
 			if (previous !== null) {
 				previous.next = object;
 			} else {
