@@ -16,7 +16,9 @@ import {
 	newNative,
 	newClosure,
 	newUpvalue,
-	newClass
+	newClass,
+	newInstance,
+	AS_CLASS
 } from './object.js';
 import {
 	BOOL_VAL,
@@ -419,6 +421,12 @@ export class VM {
 	static callValue(callee, argCount) {
 		if (IS_OBJ(callee)) {
 			switch (OBJ_TYPE(callee)) {
+				case 'OBJ_CLASS': {
+					let klass = AS_CLASS(callee);
+					this.stack[this.stackTop - argCount - 1] = OBJ_VAL(newInstance(klass));
+
+					return true;
+				}
 				case 'OBJ_CLOSURE':
 					return this.call(AS_CLOSURE(callee), argCount);
 				case 'OBJ_FUNCTION':

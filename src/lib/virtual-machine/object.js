@@ -3,9 +3,10 @@ import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
 import { DEBUG_LOG_GC, DEBUG_STRESS_GC } from "./common.js";
 import { collectGarbage } from "./memory.js";
+import { Table } from './table.js';
 /** @import { Value } from "./value.js" */
 
-/** @typedef { 'OBJ_CLASS' | 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
+/** @typedef { 'OBJ_CLASS' | 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_INSTANCE' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
 
 /** 
  * @typedef { Object } Obj 
@@ -59,6 +60,13 @@ import { collectGarbage } from "./memory.js";
  * @typedef { Obj & {
  *  name: ObjString
  * } } ObjClass
+ */
+
+/**
+ * @typedef { Obj & {
+ *  klass: ObjClass
+ *  fields: Table<Obj, Value>
+ * } } ObjInstance
  */
 
 /**
@@ -134,6 +142,21 @@ export function newFunction() {
 	});
 
 	return fn;
+}
+
+/** 
+ * @param { ObjClass } klass
+ * @returns { ObjInstance }
+ */
+export function newInstance(klass) {
+	let instance_ = allocateObject('OBJ_INSTANCE');
+
+	let instance = Object.assign(instance_, {
+		klass,
+		fields: new Table()
+	});
+
+	return instance;
 }
 
 /** @param { NativeFn } func */
@@ -234,6 +257,8 @@ export function objectToString(value) {
 			return functionToString(AS_CLOSURE(value).function);
 		case 'OBJ_FUNCTION':
 			return functionToString(AS_FUNCTION(value));
+		case 'OBJ_INSTANCE':
+			return `${AS_INSTANCE(value).klass.name.chars} instance`;
 		case 'OBJ_NATIVE':
 			return '<native fn>';
 		case 'OBJ_STRING':
@@ -273,6 +298,9 @@ export function IS_CLOSURE(value) { return isObjType(value, 'OBJ_CLOSURE'); }
 export function IS_FUNCTION(value) { return isObjType(value, 'OBJ_FUNCTION'); }
 
 /** @param { Value } value */
+export function IS_INSTANCE(value) { return isObjType(value, 'OBJ_INSTANCE'); }
+
+/** @param { Value } value */
 export function IS_NATIVE(value) { return isObjType(value, 'OBJ_NATIVE'); }
 
 /** @param { Value } value */
@@ -295,6 +323,12 @@ export function AS_CLOSURE(value) { return AS_OBJ(value); }
  * @returns { ObjFunction } 
  */
 export function AS_FUNCTION(value) { return AS_OBJ(value); }
+
+/**
+ * @param { Value } value
+ * @returns { ObjInstance }
+ */
+export function AS_INSTANCE(value) { return AS_OBJ(value); }
 
 /**
  * @param { Value } value 

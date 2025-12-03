@@ -4,7 +4,7 @@ import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
 import { markTable, tableRemoveWhite } from "./table.js";
 import { markCompilerRoots } from "./compiler.js";
 /** @import { Value, ValueArray } from "./value.js" */
-/** @import { Obj, ObjClass, ObjClosure, ObjFunction, ObjUpvalue } from "./object.js" */
+/** @import { Obj, ObjClass, ObjClosure, ObjFunction, ObjInstance, ObjUpvalue } from "./object.js" */
 
 const GC_HEAP_GROW_FACTOR = 2;
 
@@ -102,6 +102,12 @@ function blackenObject(object) {
 			let func = /** @type { ObjFunction } */ (object);
 			markObject(func.name);
 			markArray(func.chunk.constants);
+			break;
+		}
+		case 'OBJ_INSTANCE': {
+			let instance = /** @type { ObjInstance } */(object);
+			markObject(instance.klass);
+			markTable(instance.fields);
 			break;
 		}
 		case 'OBJ_UPVALUE':
