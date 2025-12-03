@@ -15,7 +15,8 @@ import {
 	copyString,
 	newNative,
 	newClosure,
-	newUpvalue
+	newUpvalue,
+	newClass
 } from './object.js';
 import {
 	BOOL_VAL,
@@ -317,6 +318,9 @@ export class VM {
 
 						break;
 					}
+					case OpCode.OP_CLASS:
+						this.push(OBJ_VAL(newClass(READ_STRING())));
+						break;
 				}
 			}
 		} catch (e) {

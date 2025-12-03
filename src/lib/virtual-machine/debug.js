@@ -84,19 +84,21 @@ export function disassembleInstruction(chunk, offset) {
 			offset++;
 			let constant = chunk.code[offset++];
 			console.log(`${output} ${'OP_CLOSURE'.padEnd(16)} ${String(constant).padStart(4, ' ')} ${valueToString(chunk.constants.values[constant])}`);
-			
+
 			let func = AS_FUNCTION(chunk.constants.values[constant]);
 			for (let j = 0; j < func.upvalueCount; j++) {
 				let isLocal = chunk.code[offset++];
 				let index = chunk.code[offset++];
 				console.log(`${String(offset - 2).padStart(4, '0')}      |                     ${isLocal ? 'local' : 'upvalue'} ${index}`);
 			}
-			
+
 			return offset;
 		case OpCode.OP_CLOSE_UPVALUE:
 			return simpleInstruction('OP_CLOSE_UPVALUE', offset, output);
 		case OpCode.OP_RETURN:
 			return simpleInstruction('OP_RETURN', offset, output);
+		case OpCode.OP_CLASS:
+			return constantInstruction('OP_CLASS', chunk, offset, output);
 		default:
 			console.log(`Unknown opcode ${instruction}`);
 			return offset + 1;

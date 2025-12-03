@@ -580,6 +580,18 @@ function func(type) {
 	}
 }
 
+function classDeclaration() {
+	consume('TOKEN_IDENTIFIER', "Expected class name.");
+	let nameConstant = identifierConstant(parser.previous);
+	declareVariable();
+
+	emitBytes(OpCode.OP_CLASS, nameConstant);
+	defineVariable(nameConstant);
+
+	consume('TOKEN_LEFT_BRACE', "Expected '{' before class body.");
+	consume('TOKEN_RIGHT_BRACE', "Expected '}' after class body.");
+}
+
 function funDeclaration() {
 	let global = parseVariable('Expected function name.');
 	markInitialized();
@@ -732,7 +744,9 @@ function synchronize() {
 }
 
 function declaration() {
-	if (match('TOKEN_FUN')) {
+	if (match('TOKEN_CLASS')) {
+		classDeclaration();
+	} else if (match('TOKEN_FUN')) {
 		funDeclaration();
 	} else if (match('TOKEN_VAR')) {
 		varDeclaration();
