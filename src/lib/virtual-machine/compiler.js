@@ -212,6 +212,19 @@ function call(canAssign) {
 }
 
 /** @param { boolean } canAssign */
+function dot(canAssign) {
+	consume('TOKEN_IDENTIFIER', "Expected property name after '.'.");
+	let name = identifierConstant(parser.previous);
+
+	if (canAssign && match('TOKEN_EQUAL')) {
+		expression();
+		emitBytes(OpCode.OP_SET_PROPERTY, name);
+	} else {
+		emitBytes(OpCode.OP_GET_PROPERTY, name);
+	}
+}
+
+/** @param { boolean } canAssign */
 function literal(canAssign) {
 	switch (parser.previous.type) {
 		case 'TOKEN_FALSE': emitByte(OpCode.OP_FALSE); break;
@@ -305,7 +318,7 @@ let rules = {
 	['TOKEN_LEFT_BRACE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_RIGHT_BRACE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_COMMA']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
-	['TOKEN_DOT']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_DOT']: { prefix: null, infix: dot, precedence: Precedence.PREC_CALL },
 	['TOKEN_MINUS']: { prefix: unary, infix: binary, precedence: Precedence.PREC_TERM },
 	['TOKEN_PLUS']: { prefix: null, infix: binary, precedence: Precedence.PREC_TERM },
 	['TOKEN_SEMICOLON']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },

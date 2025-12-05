@@ -52,6 +52,10 @@ export function disassembleInstruction(chunk, offset) {
 			return byteInstruction('OP_GET_UPVALUE', chunk, offset, output);
 		case OpCode.OP_SET_UPVALUE:
 			return byteInstruction('OP_SET_UPVALUE', chunk, offset, output);
+		case OpCode.OP_GET_PROPERTY:
+			return constantInstruction('OP_GET_PROPERTY', chunk, offset, output);
+		case OpCode.OP_SET_PROPERTY:
+			return constantInstruction('OP_SET_PROPERTY', chunk, offset, output);
 		case OpCode.OP_EQUAL:
 			return simpleInstruction('OP_EQUAL', offset, output);
 		case OpCode.OP_GREATER:
