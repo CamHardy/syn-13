@@ -9,6 +9,8 @@ import {
 	IS_STRING,
 	takeString,
 	OBJ_TYPE,
+	AS_INSTANCE,
+	IS_INSTANCE,
 	AS_CLOSURE,
 	AS_FUNCTION,
 	AS_NATIVE,
@@ -220,6 +222,38 @@ export class VM {
 							if (upvalue.location === null) upvalue.closed = this.peek(0);
 							else VM.stack[upvalue.location] = this.peek(0);
 						}
+						break;
+					}
+					case OpCode.OP_GET_PROPERTY: {
+						if (!IS_INSTANCE(VM.peek(0))) {
+							VM.runtimeError('Only instances have properties.');
+							return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						}
+
+						let instance = AS_INSTANCE(VM.peek(0));
+						let name = READ_STRING();
+
+						let value = instance.fields.get(name);
+						if (value !== undefined) {
+							VM.pop();
+							VM.push(value);
+							break;
+						}
+
+						VM.runtimeError(`Undefined property '${name.chars}'.`);
+						return InterpretResult.INTERPRET_RUNTIME_ERROR;
+					}
+					case OpCode.OP_SET_PROPERTY: {
+						if (!IS_INSTANCE(VM.peek(1))) {
+							VM.runtimeError('Only instances have properties.');
+							return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						}
+
+						let instance = AS_INSTANCE(VM.peek(1));
+						instance.fields.set(READ_STRING(), VM.peek(0));
+						let value = VM.pop();
+						VM.pop();
+						VM.push(value);
 						break;
 					}
 					case OpCode.OP_EQUAL: {
