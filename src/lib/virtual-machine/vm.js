@@ -116,7 +116,7 @@ export class VM {
 		let closure = newClosure(fn);
 		VM.pop();
 		VM.push(OBJ_VAL(closure));
-		this.call(closure, 0);
+		VM.call(closure, 0);
 
 		return VM.run();
 	}
@@ -136,23 +136,23 @@ export class VM {
 		 * @param { (a: number, b: number) => any } op 
 		 */
 		const BINARY_OP = (valueType, op) => {
-			if (!IS_NUMBER(this.peek(0)) || !IS_NUMBER(this.peek(1))) {
-				this.runtimeError('Operands must be numbers.');
+			if (!IS_NUMBER(VM.peek(0)) || !IS_NUMBER(VM.peek(1))) {
+				VM.runtimeError('Operands must be numbers.');
 				throw RUNTIME_ERROR;
 			}
 			/** @type { number } */
-			const b = AS_NUMBER(this.pop());
+			const b = AS_NUMBER(VM.pop());
 			/** @type { number } */
-			const a = AS_NUMBER(this.pop());
-			this.push(valueType(op(a, b)));
+			const a = AS_NUMBER(VM.pop());
+			VM.push(valueType(op(a, b)));
 		};
 
 		try {
 			for (; ;) {
 				if (DEBUG_TRACE_EXECUTION) {
 					let print = '          ';
-					for (let slot = 0; slot < this.stackTop; slot++) {
-						print += '[ ' + this.stack[slot] + ' ]';
+					for (let slot = 0; slot < VM.stackTop; slot++) {
+						print += '[ ' + VM.stack[slot] + ' ]';
 					}
 					console.log(print);
 					disassembleInstruction(frame.closure.function.chunk, frame.ip);
@@ -169,7 +169,7 @@ export class VM {
 					case OpCode.OP_FALSE:
 						VM.push(BOOL_VAL(false)); break;
 					case OpCode.OP_POP:
-						this.pop(); break;
+						VM.pop(); break;
 					case OpCode.OP_GET_LOCAL: {
 						let slot = READ_BYTE();
 						VM.push(VM.stack[frame.slots + slot]);
@@ -177,7 +177,7 @@ export class VM {
 					}
 					case OpCode.OP_SET_LOCAL: {
 						let slot = READ_BYTE();
-						VM.stack[frame.slots + slot] = this.peek(0);
+						VM.stack[frame.slots + slot] = VM.peek(0);
 						break;
 					}
 					case OpCode.OP_GET_GLOBAL: {
@@ -194,14 +194,14 @@ export class VM {
 					}
 					case OpCode.OP_DEFINE_GLOBAL: {
 						let name = READ_STRING();
-						VM.globals.set(name, this.peek(0));
-						this.pop();
+						VM.globals.set(name, VM.peek(0));
+						VM.pop();
 						break;
 					}
 					case OpCode.OP_SET_GLOBAL: {
 						let name = READ_STRING();
 
-						if (VM.globals.set(name, this.peek(0))) {
+						if (VM.globals.set(name, VM.peek(0))) {
 							VM.globals.delete(name);
 							VM.runtimeError(`Undefined variable '${name.chars}'.`);
 
@@ -212,15 +212,15 @@ export class VM {
 					case OpCode.OP_GET_UPVALUE: {
 						let slot = READ_BYTE();
 						let upvalue = frame.closure.upvalues[slot];
-						if (upvalue) this.push(upvalue.location === null ? upvalue.closed : VM.stack[upvalue.location]);
+						if (upvalue) VM.push(upvalue.location === null ? upvalue.closed : VM.stack[upvalue.location]);
 						break;
 					}
 					case OpCode.OP_SET_UPVALUE: {
 						let slot = READ_BYTE();
 						let upvalue = frame.closure.upvalues[slot];
 						if (upvalue) {
-							if (upvalue.location === null) upvalue.closed = this.peek(0);
-							else VM.stack[upvalue.location] = this.peek(0);
+							if (upvalue.location === null) upvalue.closed = VM.peek(0);
+							else VM.stack[upvalue.location] = VM.peek(0);
 						}
 						break;
 					}
@@ -257,19 +257,19 @@ export class VM {
 						break;
 					}
 					case OpCode.OP_EQUAL: {
-						let b = this.pop();
-						let a = this.pop();
-						this.push(BOOL_VAL(valuesEqual(a, b))); break;
+						let b = VM.pop();
+						let a = VM.pop();
+						VM.push(BOOL_VAL(valuesEqual(a, b))); break;
 					}
 					case OpCode.OP_GREATER: BINARY_OP(BOOL_VAL, (a, b) => a > b); break;
 					case OpCode.OP_LESS: BINARY_OP(BOOL_VAL, (a, b) => a < b); break;
 					case OpCode.OP_ADD: {
-						if (IS_STRING(this.peek(0)) && IS_STRING(this.peek(1))) {
-							this.concatenate();
-						} else if (IS_NUMBER(this.peek(0)) && IS_NUMBER(this.peek(1))) {
-							let b = AS_NUMBER(this.pop());
-							let a = AS_NUMBER(this.pop());
-							this.push(NUMBER_VAL(a + b));
+						if (IS_STRING(VM.peek(0)) && IS_STRING(VM.peek(1))) {
+							VM.concatenate();
+						} else if (IS_NUMBER(VM.peek(0)) && IS_NUMBER(VM.peek(1))) {
+							let b = AS_NUMBER(VM.pop());
+							let a = AS_NUMBER(VM.pop());
+							VM.push(NUMBER_VAL(a + b));
 						} else {
 							VM.runtimeError('Operands must be two numbers or two strings.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
@@ -280,17 +280,17 @@ export class VM {
 					case OpCode.OP_MULTIPLY: BINARY_OP(NUMBER_VAL, (a, b) => a * b); break;
 					case OpCode.OP_DIVIDE: BINARY_OP(NUMBER_VAL, (a, b) => a / b); break;
 					case OpCode.OP_NOT:
-						this.push(BOOL_VAL(this.isFalsey(this.pop()))); break;
+						VM.push(BOOL_VAL(VM.isFalsey(VM.pop()))); break;
 					case OpCode.OP_NEGATE: {
-						if (!IS_NUMBER(this.peek(0))) {
+						if (!IS_NUMBER(VM.peek(0))) {
 							VM.runtimeError('Operand must be a number.');
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
-						this.push(NUMBER_VAL(-AS_NUMBER(this.pop())));
+						VM.push(NUMBER_VAL(-AS_NUMBER(VM.pop())));
 						break;
 					}
 					case OpCode.OP_PRINT:
-						printValue(this.pop()); break;
+						printValue(VM.pop()); break;
 					case OpCode.OP_JUMP: {
 						let offset = READ_SHORT();
 						frame.ip += offset;
@@ -298,7 +298,7 @@ export class VM {
 					}
 					case OpCode.OP_JUMP_IF_FALSE: {
 						let offset = READ_SHORT();
-						if (this.isFalsey(this.peek(0))) frame.ip += offset;
+						if (VM.isFalsey(VM.peek(0))) frame.ip += offset;
 						break;
 					}
 					case OpCode.OP_LOOP: {
@@ -309,16 +309,16 @@ export class VM {
 					case OpCode.OP_CALL: {
 						let argCount = READ_BYTE();
 
-						if (!this.callValue(this.peek(argCount), argCount)) {
+						if (!VM.callValue(VM.peek(argCount), argCount)) {
 							return InterpretResult.INTERPRET_RUNTIME_ERROR;
 						}
-						frame = this.frames[this.frameCount - 1]
+						frame = VM.frames[VM.frameCount - 1]
 						break;
 					}
 					case OpCode.OP_CLOSURE: {
 						let func = AS_FUNCTION(READ_CONSTANT());
 						let closure = newClosure(func);
-						this.push(OBJ_VAL(closure));
+						VM.push(OBJ_VAL(closure));
 
 						for (let i = 0; i < closure.upvalueCount; i++) {
 							let isLocal = READ_BYTE();
@@ -334,28 +334,28 @@ export class VM {
 						break;
 					}
 					case OpCode.OP_CLOSE_UPVALUE:
-						this.closeUpvalues(VM.stackTop - 1);
-						this.pop();
+						VM.closeUpvalues(VM.stackTop - 1);
+						VM.pop();
 						break;
 					case OpCode.OP_RETURN: {
-						let result = this.pop();
-						this.closeUpvalues(frame.slots);
+						let result = VM.pop();
+						VM.closeUpvalues(frame.slots);
 						VM.frameCount--;
 
 						if (VM.frameCount === 0) {
-							this.pop();
+							VM.pop();
 
 							return InterpretResult.INTERPRET_OK;
 						}
 
 						VM.stackTop = frame.slots;
-						this.push(result);
+						VM.push(result);
 						frame = VM.frames[VM.frameCount - 1];
 
 						break;
 					}
 					case OpCode.OP_CLASS:
-						this.push(OBJ_VAL(newClass(READ_STRING())));
+						VM.push(OBJ_VAL(newClass(READ_STRING())));
 						break;
 				}
 			}
@@ -366,9 +366,9 @@ export class VM {
 	}
 
 	static resetStack() {
-		this.stackTop = 0;
-		this.frameCount = 0;
-		this.openUpvalues = [null];
+		VM.stackTop = 0;
+		VM.frameCount = 0;
+		VM.openUpvalues = [null];
 	}
 
 	/**
@@ -390,7 +390,7 @@ export class VM {
 			}
 		}
 
-		this.resetStack();
+		VM.resetStack();
 
 		throw RUNTIME_ERROR;
 	}
@@ -400,11 +400,11 @@ export class VM {
 	 * @param { NativeFn } func 
 	 */
 	static defineNative(name, func) {
-		this.push(OBJ_VAL(copyString(name)));
-		this.push(OBJ_VAL(newNative(func)));
+		VM.push(OBJ_VAL(copyString(name)));
+		VM.push(OBJ_VAL(newNative(func)));
 		VM.globals.set(AS_STRING(VM.stack[0]), VM.stack[1]);
-		this.pop();
-		this.pop();
+		VM.pop();
+		VM.pop();
 	}
 
 	/** @param { Value } value */
@@ -419,7 +419,7 @@ export class VM {
 
 	/** @param { number } distance */
 	static peek(distance) {
-		return this.stack[this.stackTop - 1 - distance];
+		return VM.stack[VM.stackTop - 1 - distance];
 	}
 
 	/**
@@ -429,12 +429,12 @@ export class VM {
 	 */
 	static call(closure, argCount) {
 		if (argCount != closure.function.arity) {
-			this.runtimeError(`Expected ${closure.function.arity} arguments but got ${argCount}`);
+			VM.runtimeError(`Expected ${closure.function.arity} arguments but got ${argCount}`);
 			return false;
 		}
 
 		if (VM.frameCount === FRAMES_MAX) {
-			this.runtimeError('Stack overflow.');
+			VM.runtimeError('Stack overflow.');
 			return false;
 		}
 
@@ -457,26 +457,26 @@ export class VM {
 			switch (OBJ_TYPE(callee)) {
 				case 'OBJ_CLASS': {
 					let klass = AS_CLASS(callee);
-					this.stack[this.stackTop - argCount - 1] = OBJ_VAL(newInstance(klass));
+					VM.stack[VM.stackTop - argCount - 1] = OBJ_VAL(newInstance(klass));
 
 					return true;
 				}
 				case 'OBJ_CLOSURE':
-					return this.call(AS_CLOSURE(callee), argCount);
+					return VM.call(AS_CLOSURE(callee), argCount);
 				case 'OBJ_FUNCTION':
-					return this.call(AS_CLOSURE(callee), argCount);
+					return VM.call(AS_CLOSURE(callee), argCount);
 				case 'OBJ_NATIVE':
 					let native = AS_NATIVE(callee);
 					let result = native(argCount, VM.stack.slice(VM.stackTop - argCount, VM.stackTop));
 					VM.stackTop -= argCount + 1;
-					this.push(result);
+					VM.push(result);
 
 					return true;
 				default:
 					break;
 			}
 		}
-		this.runtimeError("Can only call functions and classes.");
+		VM.runtimeError("Can only call functions and classes.");
 
 		return false;
 	}
@@ -526,12 +526,12 @@ export class VM {
 	}
 
 	static concatenate() {
-		let b = AS_STRING(this.peek(0));
-		let a = AS_STRING(this.peek(1));
+		let b = AS_STRING(VM.peek(0));
+		let a = AS_STRING(VM.peek(1));
 
 		let result = takeString(a.chars + b.chars);
-		this.pop();
-		this.pop();
-		this.push(OBJ_VAL(result));
+		VM.pop();
+		VM.pop();
+		VM.push(OBJ_VAL(result));
 	}
 } 
