@@ -87,6 +87,7 @@ function blackenObject(object) {
 		case 'OBJ_CLASS': {
 			let klass = /** @type { ObjClass } */(object);
 			markObject(klass.name);
+			markTable(klass.methods);
 			break;
 		}
 		case 'OBJ_CLOSURE': {

@@ -59,6 +59,7 @@ import { Table } from './table.js';
 /**
  * @typedef { Obj & {
  *  name: ObjString
+ *  methods: Table<ObjString, Value>
  * } } ObjClass
  */
 
@@ -101,7 +102,8 @@ export function newClass(name) {
 	let klass_ = allocateObject('OBJ_CLASS');
 
 	let klass = Object.assign(klass_, {
-		name
+		name,
+		methods: new Table()
 	});
 
 	return klass;
