@@ -593,16 +593,33 @@ function func(type) {
 	}
 }
 
+function method() {
+	consume('TOKEN_IDENTIFIER', 'Expected method name.');
+	let constant = identifierConstant(parser.previous);
+
+	/** @type { FunctionType } */
+	let type = 'TYPE_FUNCTION';
+	func(type);
+
+	emitBytes(OpCode.OP_METHOD, constant);
+}
+
 function classDeclaration() {
 	consume('TOKEN_IDENTIFIER', "Expected class name.");
+	let className = parser.previous;
 	let nameConstant = identifierConstant(parser.previous);
 	declareVariable();
 
 	emitBytes(OpCode.OP_CLASS, nameConstant);
 	defineVariable(nameConstant);
 
+	namedVariable(className, false);
 	consume('TOKEN_LEFT_BRACE', "Expected '{' before class body.");
+	while (!check('TOKEN_RIGHT_BRACE') && !check('TOKEN_EOF')) {
+		method();
+	}
 	consume('TOKEN_RIGHT_BRACE', "Expected '}' after class body.");
+	emitByte(OpCode.OP_POP);
 }
 
 function funDeclaration() {
