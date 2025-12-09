@@ -103,6 +103,8 @@ export function disassembleInstruction(chunk, offset) {
 			return simpleInstruction('OP_RETURN', offset, output);
 		case OpCode.OP_CLASS:
 			return constantInstruction('OP_CLASS', chunk, offset, output);
+		case OpCode.OP_METHOD:
+			return constantInstruction('OP_METHOD', chunk, offset, output);
 		default:
 			console.log(`Unknown opcode ${instruction}`);
 			return offset + 1;

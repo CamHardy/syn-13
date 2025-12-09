@@ -357,6 +357,9 @@ export class VM {
 					case OpCode.OP_CLASS:
 						VM.push(OBJ_VAL(newClass(READ_STRING())));
 						break;
+					case OpCode.OP_METHOD:
+						VM.defineMethod(READ_STRING());
+						break;
 				}
 			}
 		} catch (e) {
@@ -518,6 +521,15 @@ export class VM {
 			VM.openUpvalues[0] = upvalue.next;
 			upvalue = VM.openUpvalues[0];
 		}
+	}
+
+	/** @param { ObjString } name */
+	static defineMethod(name) {
+		let method = VM.peek(0);
+		let klass = AS_CLASS(VM.peek(1));
+		klass.methods.set(name, method);
+
+		VM.pop();
 	}
 
 	/** @param { Value } value */
