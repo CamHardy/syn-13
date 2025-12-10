@@ -6,7 +6,7 @@ import { collectGarbage } from "./memory.js";
 import { Table } from './table.js';
 /** @import { Value } from "./value.js" */
 
-/** @typedef { 'OBJ_CLASS' | 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_INSTANCE' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
+/** @typedef { 'OBJ_BOUND_METHOD' | 'OBJ_CLASS' | 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_INSTANCE' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
 
 /** 
  * @typedef { Object } Obj 
@@ -71,6 +71,13 @@ import { Table } from './table.js';
  */
 
 /**
+ * @typedef { Obj & {
+ * 	receiver: Value
+ *  method: ObjClosure
+ * } } ObjBoundMethod
+ */
+
+/**
  * @param { ObjType } type
  * @returns { Obj }
  */
@@ -97,7 +104,26 @@ export function allocateObject(type) {
 	return object;
 }
 
-/** @param { ObjString } name */
+/** 
+ * @param { Value } receiver 
+ * @param { ObjClosure } method
+ * @returns { ObjBoundMethod }
+ */
+export function newBoundMethod(receiver, method) {
+	let bound_ = allocateObject('OBJ_BOUND_METHOD');
+
+	let bound = Object.assign(bound_, {
+		receiver,
+		method
+	});
+
+	return bound;
+}
+
+/** 
+ * @param { ObjString } name
+ * @returns { ObjClass }
+ */
 export function newClass(name) {
 	let klass_ = allocateObject('OBJ_CLASS');
 
@@ -161,11 +187,14 @@ export function newInstance(klass) {
 	return instance;
 }
 
-/** @param { NativeFn } func */
+/** 
+ * @param { NativeFn } func 
+ * @returns { ObjNative }
+ */
 export function newNative(func) {
-	let native = allocateObject('OBJ_NATIVE');
+	let native_ = allocateObject('OBJ_NATIVE');
 
-	native = Object.assign(native, {
+	let native = Object.assign(native_, {
 		function: func
 	});
 
@@ -189,6 +218,7 @@ export function allocateString(str, hash) {
 	VM.push(OBJ_VAL(string));
 	VM.strings.set(str, string);
 	VM.pop();
+
 	return string;
 }
 
@@ -241,18 +271,11 @@ export function newUpvalue(slot) {
 	return upvalue;
 }
 
-/** @param { ObjFunction } fn */
-function printFunction(fn) {
-	if (fn.name === null) {
-		console.log('<script>');
-		return;
-	}
-	console.log(`<fn ${fn.name.chars}>`);
-}
-
 /** @param { Value } value */
 export function objectToString(value) {
 	switch (OBJ_TYPE(value)) {
+		case 'OBJ_BOUND_METHOD':
+			return functionToString(AS_BOUND_METHOD(value).method.function);
 		case 'OBJ_CLASS':
 			return AS_CLASS(value).name.chars;
 		case 'OBJ_CLOSURE':
@@ -291,6 +314,9 @@ export function printObject(value) {
 export function OBJ_TYPE(value) { return AS_OBJ(value).type; }
 
 /** @param { Value } value */
+export function IS_BOUND_METHOD(value) { return isObjType(value, 'OBJ_BOUND_METHOD'); }
+
+/** @param { Value } value */
 export function IS_CLASS(value) { return isObjType(value, 'OBJ_CLASS'); }
 
 /** @param { Value } value */
@@ -307,6 +333,12 @@ export function IS_NATIVE(value) { return isObjType(value, 'OBJ_NATIVE'); }
 
 /** @param { Value } value */
 export function IS_STRING(value) { return isObjType(value, 'OBJ_STRING'); }
+
+/**
+ * @param { Value } value
+ * @returns { ObjBoundMethod }
+ */
+export function AS_BOUND_METHOD(value) { return AS_OBJ(value); }
 
 /**
  * @param { Value } value

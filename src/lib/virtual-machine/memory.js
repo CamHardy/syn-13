@@ -4,7 +4,7 @@ import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
 import { markTable, tableRemoveWhite } from "./table.js";
 import { markCompilerRoots } from "./compiler.js";
 /** @import { Value, ValueArray } from "./value.js" */
-/** @import { Obj, ObjClass, ObjClosure, ObjFunction, ObjInstance, ObjUpvalue } from "./object.js" */
+/** @import { Obj, ObjBoundMethod, ObjClass, ObjClosure, ObjFunction, ObjInstance, ObjUpvalue } from "./object.js" */
 
 const GC_HEAP_GROW_FACTOR = 2;
 
@@ -84,6 +84,12 @@ function blackenObject(object) {
 	}
 
 	switch (object.type) {
+		case 'OBJ_BOUND_METHOD': {
+			let bound = /** @type { ObjBoundMethod } */(object);
+			markValue(bound.receiver);
+			markObject(bound.method);
+			break;
+		}
 		case 'OBJ_CLASS': {
 			let klass = /** @type { ObjClass } */(object);
 			markObject(klass.name);
