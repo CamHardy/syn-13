@@ -20,6 +20,7 @@ import {
 	newUpvalue,
 	newClass,
 	newInstance,
+	newBoundMethod,
 	AS_CLASS
 } from './object.js';
 import {
@@ -37,7 +38,7 @@ import {
 	IS_OBJ,
 } from './value.js';
 /** @import { Value } from './value.js' */
-/** @import { NativeFn, Obj, ObjString, ObjClosure, ObjFunction, ObjUpvalue } from './object.js' */
+/** @import { NativeFn, Obj, ObjClass, ObjString, ObjClosure, ObjFunction, ObjUpvalue } from './object.js' */
 
 /** 
  * @typedef { Object } CallFrame
@@ -240,8 +241,10 @@ export class VM {
 							break;
 						}
 
-						VM.runtimeError(`Undefined property '${name.chars}'.`);
-						return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						if (!VM.bindMethod(instance.klass, name)) {
+							return InterpretResult.INTERPRET_RUNTIME_ERROR;
+						}
+						break;
 					}
 					case OpCode.OP_SET_PROPERTY: {
 						if (!IS_INSTANCE(VM.peek(1))) {
@@ -482,6 +485,24 @@ export class VM {
 		VM.runtimeError("Can only call functions and classes.");
 
 		return false;
+	}
+
+	/**
+	 * @param { ObjClass } klass 
+	 * @param { ObjString } name 
+	 */
+	static bindMethod(klass, name) {
+		let method = klass.methods.get(name);
+		if (!method) {
+			VM.runtimeError(`Undefined property '${name.chars}'.`);
+			return false;
+		}
+
+		let bound = newBoundMethod(VM.peek(0), AS_CLOSURE(method));
+
+		VM.pop();
+		VM.push(OBJ_VAL(bound));
+		return true;
 	}
 
 	/**
