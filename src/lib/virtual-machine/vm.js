@@ -5,6 +5,7 @@ import { compile } from './compiler.js';
 import { freeObjects } from './memory.js';
 import { Table } from './table.js';
 import {
+	AS_BOUND_METHOD,
 	AS_STRING,
 	IS_STRING,
 	takeString,
@@ -461,6 +462,10 @@ export class VM {
 	static callValue(callee, argCount) {
 		if (IS_OBJ(callee)) {
 			switch (OBJ_TYPE(callee)) {
+				case 'OBJ_BOUND_METHOD': {
+					let bound = AS_BOUND_METHOD(callee);
+					return VM.call(bound.method, argCount);
+				}
 				case 'OBJ_CLASS': {
 					let klass = AS_CLASS(callee);
 					VM.stack[VM.stackTop - argCount - 1] = OBJ_VAL(newInstance(klass));
