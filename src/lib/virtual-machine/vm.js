@@ -1,45 +1,45 @@
-import { Chunk, OpCode } from './chunk.js';
-import { disassembleInstruction } from './debug.js';
+import { OpCode } from './chunk.js';
 import { DEBUG_TRACE_EXECUTION } from './common.js';
 import { compile } from './compiler.js';
+import { disassembleInstruction } from './debug.js';
 import { freeObjects } from './memory.js';
-import { Table } from './table.js';
 import {
 	AS_BOUND_METHOD,
-	AS_STRING,
-	IS_STRING,
-	takeString,
-	OBJ_TYPE,
-	AS_INSTANCE,
-	IS_INSTANCE,
+	AS_CLASS,
 	AS_CLOSURE,
 	AS_FUNCTION,
+	AS_INSTANCE,
 	AS_NATIVE,
+	AS_STRING,
+	IS_INSTANCE,
+	IS_STRING,
+	OBJ_TYPE,
 	copyString,
-	newNative,
-	newClosure,
-	newUpvalue,
-	newClass,
-	newInstance,
 	newBoundMethod,
-	AS_CLASS
+	newClass,
+	newClosure,
+	newInstance,
+	newNative,
+	newUpvalue,
+	takeString
 } from './object.js';
+import { Table } from './table.js';
 import {
+	AS_BOOL,
+	AS_NUMBER,
+	IS_BOOL,
+	IS_OBJ,
+	IS_NIL,
+	IS_NUMBER,
 	BOOL_VAL,
 	NIL_VAL,
 	NUMBER_VAL,
 	OBJ_VAL,
-	AS_BOOL,
-	AS_NUMBER,
-	IS_BOOL,
-	IS_NIL,
-	IS_NUMBER,
-	valuesEqual,
 	printValue,
-	IS_OBJ,
+	valuesEqual
 } from './value.js';
-/** @import { Value } from './value.js' */
 /** @import { NativeFn, Obj, ObjClass, ObjString, ObjClosure, ObjFunction, ObjUpvalue } from './object.js' */
+/** @import { Value } from './value.js' */
 
 /** 
  * @typedef { Object } CallFrame
