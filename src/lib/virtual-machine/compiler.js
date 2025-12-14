@@ -1,14 +1,14 @@
-import { Scanner } from './scanner.js';
 import { OpCode } from './chunk.js';
-import { disassembleChunk } from './debug.js';
 import { DEBUG_PRINT_CODE } from './common.js';
-import { NUMBER_VAL, OBJ_VAL } from './value.js';
-import { copyString, newFunction } from './object.js';
+import { disassembleChunk } from './debug.js';
 import { markObject } from './memory.js';
+import { copyString, newFunction } from './object.js';
+import { Scanner } from './scanner.js';
+import { NUMBER_VAL, OBJ_VAL } from './value.js';
 /** @import { Chunk } from './chunk.js' */
+/** @import { ObjFunction } from "./object.js" */
 /** @import { Token, TokenType } from './scanner.js' */
 /** @import { Value } from "./value.js" */
-/** @import { ObjFunction } from "./object.js" */
 
 /**
  * @typedef { Object } Parser
