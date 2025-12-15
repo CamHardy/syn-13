@@ -1,8 +1,6 @@
-import { Chunk, OpCode } from './chunk.js';
-import { disassembleChunk } from './debug.js';
-import { VM, InterpretResult } from './vm.js';
 import fs from 'fs';
 import readline from 'node:readline';
+import { VM, InterpretResult } from './vm.js';
 
 /** @type { VM | null } */
 let vm = new VM();
@@ -13,7 +11,7 @@ async function repl() {
 		output: process.stdout
 	});
 
-	for (;;) {
+	for (; ;) {
 		/** @type { string | null } */
 		let line = await new Promise((resolve) => {
 			rl.once('close', () => resolve(null));
