@@ -1,10 +1,10 @@
-import { VM } from './vm.js';
 import { DEBUG_LOG_GC } from './common.js';
-import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
-import { markTable, tableRemoveWhite } from "./table.js";
 import { markCompilerRoots } from "./compiler.js";
-/** @import { Value, ValueArray } from "./value.js" */
+import { markTable, tableRemoveWhite } from "./table.js";
+import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
+import { VM } from './vm.js';
 /** @import { Obj, ObjBoundMethod, ObjClass, ObjClosure, ObjFunction, ObjInstance, ObjUpvalue } from "./object.js" */
+/** @import { Value, ValueArray } from "./value.js" */
 
 const GC_HEAP_GROW_FACTOR = 2;
 
