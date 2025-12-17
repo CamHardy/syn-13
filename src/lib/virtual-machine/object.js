@@ -1,9 +1,9 @@
-import { AS_OBJ, IS_OBJ, NIL_VAL, OBJ_VAL } from './value.js';
-import { VM } from './vm.js';
 import { Chunk } from "./chunk.js";
 import { DEBUG_LOG_GC, DEBUG_STRESS_GC } from "./common.js";
 import { collectGarbage } from "./memory.js";
 import { Table } from './table.js';
+import { AS_OBJ, IS_OBJ, NIL_VAL, OBJ_VAL } from './value.js';
+import { VM } from './vm.js';
 /** @import { Value } from "./value.js" */
 
 /** @typedef { 'OBJ_BOUND_METHOD' | 'OBJ_CLASS' | 'OBJ_CLOSURE' | 'OBJ_FUNCTION' | 'OBJ_INSTANCE' | 'OBJ_NATIVE' | 'OBJ_STRING' | 'OBJ_UPVALUE' } ObjType */
