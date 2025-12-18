@@ -1,8 +1,7 @@
-import { growCapacity, growArray } from './memory.js';
-import { objectToString, AS_STRING } from './object.js';
+import { growCapacity } from './memory.js';
+import { AS_STRING, objectToString } from './object.js';
 /** @import { Obj, ObjString } from "./object.js" */
 
-/** @typedef { Obj } Obj */
 /** @typedef { ObjString } ObjString */
 
 /** @typedef { 'VAL_BOOL' | 'VAL_NIL' | 'VAL_NUMBER' | 'VAL_OBJ' } ValueType */
@@ -107,7 +106,7 @@ export class ValueArray {
 			this.capacity = growCapacity(oldCapacity);
 			this.values.length = this.capacity;
 		}
-		
+
 		this.values[this.count] = value;
 		this.count++;
 	}
