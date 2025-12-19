@@ -1,6 +1,6 @@
 import fs from 'fs';
 import readline from 'node:readline';
-import { VM, InterpretResult } from './vm.js';
+import { InterpretResult, VM } from './vm.js';
 
 /** @type { VM | null } */
 let vm = new VM();

@@ -1,7 +1,7 @@
 import { DEBUG_LOG_GC } from './common.js';
 import { markCompilerRoots } from "./compiler.js";
 import { markTable, tableRemoveWhite } from "./table.js";
-import { IS_OBJ, AS_OBJ, OBJ_VAL } from './value.js';
+import { AS_OBJ, IS_OBJ, OBJ_VAL } from './value.js';
 import { VM } from './vm.js';
 /** @import { Obj, ObjBoundMethod, ObjClass, ObjClosure, ObjFunction, ObjInstance, ObjUpvalue } from "./object.js" */
 /** @import { Value, ValueArray } from "./value.js" */

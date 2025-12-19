@@ -38,7 +38,7 @@ import {
 	printValue,
 	valuesEqual
 } from './value.js';
-/** @import { NativeFn, Obj, ObjClass, ObjString, ObjClosure, ObjFunction, ObjUpvalue } from './object.js' */
+/** @import { NativeFn, Obj, ObjClass, ObjClosure, ObjString, ObjUpvalue } from './object.js' */
 /** @import { Value } from './value.js' */
 
 /** 
