@@ -55,7 +55,7 @@ const Precedence = Object.freeze({
  * @property { boolean } isLocal
  */
 
-/** @typedef { 'TYPE_FUNCTION' | 'TYPE_SCRIPT' } FunctionType */
+/** @typedef { 'TYPE_FUNCTION' | 'TYPE_METHOD' | 'TYPE_SCRIPT' } FunctionType */
 
 /** 
  * @typedef { Object } Compiler
@@ -297,6 +297,11 @@ function variable(canAssign) {
 }
 
 /** @param { boolean } canAssign */
+function this_(canAssign) {
+	variable(false);
+}
+
+/** @param { boolean } canAssign */
 function unary(canAssign) {
 	let operatorType = parser.previous.type;
 
@@ -347,7 +352,7 @@ let rules = {
 	['TOKEN_PRINT']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_RETURN']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_SUPER']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
-	['TOKEN_THIS']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_THIS']: { prefix: this_, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_TRUE']: { prefix: literal, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_VAR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_WHILE']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
@@ -598,7 +603,7 @@ function method() {
 	let constant = identifierConstant(parser.previous);
 
 	/** @type { FunctionType } */
-	let type = 'TYPE_FUNCTION';
+	let type = 'TYPE_METHOD';
 	func(type);
 
 	emitBytes(OpCode.OP_METHOD, constant);
@@ -900,7 +905,7 @@ function initCompiler(type) {
 	}
 
 	current.locals[current.localCount++] = {
-		name: "",
+		name: type !== 'TYPE_FUNCTION' ? 'this' : '',
 		depth: 0,
 		isCaptured: false
 	};

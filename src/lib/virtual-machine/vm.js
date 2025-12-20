@@ -464,6 +464,8 @@ export class VM {
 			switch (OBJ_TYPE(callee)) {
 				case 'OBJ_BOUND_METHOD': {
 					let bound = AS_BOUND_METHOD(callee);
+					VM.stack[VM.stackTop - argCount - 1] = bound.receiver;
+
 					return VM.call(bound.method, argCount);
 				}
 				case 'OBJ_CLASS': {
