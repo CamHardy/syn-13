@@ -68,8 +68,14 @@ const Precedence = Object.freeze({
  * @property { number } scopeDepth
  */
 
+/**
+ * @typedef { Object } ClassCompiler
+ * @property { ClassCompiler } enclosing
+ */
+
 let parser = /** @type { Parser } */ ({});
 let current = /** @type { Compiler } */ ({});
+let currentClass = /** @type { ClassCompiler } */ ({});
 let scanner = /** @type { Scanner } */ ({});
 let compilingChunk = /** @type { Chunk } */ ({});
 
@@ -298,6 +304,11 @@ function variable(canAssign) {
 
 /** @param { boolean } canAssign */
 function this_(canAssign) {
+	if (currentClass === null) {
+		error("Can't use 'this' outside of a class.");
+		return;
+	}
+
 	variable(false);
 }
 
@@ -618,6 +629,12 @@ function classDeclaration() {
 	emitBytes(OpCode.OP_CLASS, nameConstant);
 	defineVariable(nameConstant);
 
+	/** @type { ClassCompiler } */
+	let classCompiler = {
+		enclosing: currentClass
+	};
+	currentClass = classCompiler;
+
 	namedVariable(className, false);
 	consume('TOKEN_LEFT_BRACE', "Expected '{' before class body.");
 	while (!check('TOKEN_RIGHT_BRACE') && !check('TOKEN_EOF')) {
@@ -625,6 +642,8 @@ function classDeclaration() {
 	}
 	consume('TOKEN_RIGHT_BRACE', "Expected '}' after class body.");
 	emitByte(OpCode.OP_POP);
+
+	currentClass = currentClass.enclosing;
 }
 
 function funDeclaration() {
