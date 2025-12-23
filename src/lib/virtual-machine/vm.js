@@ -78,6 +78,8 @@ export class VM {
 	static globals;
 	/** @type { Table<string, ObjString> } */
 	static strings;
+	/** @type { ObjString | null } */
+	static initString;
 	/** @type { (ObjUpvalue | null)[] } */
 	static openUpvalues;
 	/** @type { Obj | null } */
@@ -99,6 +101,7 @@ export class VM {
 		VM.strings = new Table();
 		VM.bytesAllocated = 0;
 		VM.nextGC = 256;
+		VM.initString = copyString('init');
 
 		VM.defineNative('clock', clockNative);
 	}
@@ -106,6 +109,7 @@ export class VM {
 	static freeVM() {
 		VM.globals.free();
 		VM.strings.free();
+		VM.initString = null;
 		freeObjects();
 	}
 
@@ -471,6 +475,13 @@ export class VM {
 				case 'OBJ_CLASS': {
 					let klass = AS_CLASS(callee);
 					VM.stack[VM.stackTop - argCount - 1] = OBJ_VAL(newInstance(klass));
+					let initializer = klass.methods.get(/** @type {ObjString} */(VM.initString));
+					if (initializer) {
+						return VM.call(AS_CLOSURE(initializer), argCount)
+					} else if (argCount !== 0) {
+						VM.runtimeError(`Expected 0 arguments but got ${argCount}.`);
+						return false;
+					}
 
 					return true;
 				}

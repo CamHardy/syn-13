@@ -67,6 +67,7 @@ function markRoots() {
 
 	markTable(VM.globals);
 	markCompilerRoots();
+	markObject(VM.initString);
 }
 
 /** @param { ValueArray } array */
