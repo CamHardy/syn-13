@@ -55,7 +55,7 @@ const Precedence = Object.freeze({
  * @property { boolean } isLocal
  */
 
-/** @typedef { 'TYPE_FUNCTION' | 'TYPE_METHOD' | 'TYPE_SCRIPT' } FunctionType */
+/** @typedef { 'TYPE_FUNCTION' | 'TYPE_INITIALIZER' | 'TYPE_METHOD' | 'TYPE_SCRIPT' } FunctionType */
 
 /** 
  * @typedef { Object } Compiler
@@ -615,6 +615,9 @@ function method() {
 
 	/** @type { FunctionType } */
 	let type = 'TYPE_METHOD';
+	if (parser.previous.lexeme === 'init') {
+		type = 'TYPE_INITIALIZER';
+	}
 	func(type);
 
 	emitBytes(OpCode.OP_METHOD, constant);
@@ -869,7 +872,12 @@ function emitJump(instruction) {
 }
 
 function emitReturn() {
-	emitByte(OpCode.OP_NIL);
+	if (current.type === 'TYPE_INITIALIZER') {
+		emitBytes(OpCode.OP_GET_LOCAL, 0);
+	} else {
+		emitByte(OpCode.OP_NIL);
+	}
+
 	emitByte(OpCode.OP_RETURN);
 }
 
