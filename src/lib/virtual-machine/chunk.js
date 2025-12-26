@@ -33,11 +33,12 @@ export const OpCode = Object.freeze({
 	OP_JUMP_IF_FALSE: 0x1a,
 	OP_LOOP: 0x1b,
 	OP_CALL: 0x1c,
-	OP_CLOSURE: 0x1d,
-	OP_CLOSE_UPVALUE: 0x1e,
-	OP_RETURN: 0x1f,
-	OP_CLASS: 0x20,
-	OP_METHOD: 0x21
+	OP_INVOKE: 0x1d,
+	OP_CLOSURE: 0x1e,
+	OP_CLOSE_UPVALUE: 0x1f,
+	OP_RETURN: 0x20,
+	OP_CLASS: 0x21,
+	OP_METHOD: 0x22
 });
 
 export class Chunk {

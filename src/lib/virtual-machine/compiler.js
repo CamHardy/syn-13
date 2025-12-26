@@ -225,6 +225,10 @@ function dot(canAssign) {
 	if (canAssign && match('TOKEN_EQUAL')) {
 		expression();
 		emitBytes(OpCode.OP_SET_PROPERTY, name);
+	} else if (match('TOKEN_LEFT_PAREN')) {
+		let argCount = argumentList();
+		emitBytes(OpCode.OP_INVOKE, name);
+		emitByte(argCount);
 	} else {
 		emitBytes(OpCode.OP_GET_PROPERTY, name);
 	}

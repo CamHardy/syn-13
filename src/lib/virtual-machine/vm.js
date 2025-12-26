@@ -323,6 +323,15 @@ export class VM {
 						frame = VM.frames[VM.frameCount - 1]
 						break;
 					}
+					case OpCode.OP_INVOKE: {
+						let method = READ_STRING();
+						let argCount = READ_BYTE();
+						if (!VM.invoke(method, argCount)) {
+							return 'INTERPRET_RUNTIME_ERROR';
+						}
+						frame = VM.frames[VM.frameCount - 1];
+						break;
+					}
 					case OpCode.OP_CLOSURE: {
 						let func = AS_FUNCTION(READ_CONSTANT());
 						let closure = newClosure(func);
@@ -503,6 +512,38 @@ export class VM {
 		VM.runtimeError("Can only call functions and classes.");
 
 		return false;
+	}
+
+	/**
+	 * @param { ObjClass } klass 
+	 * @param { ObjString } name 
+	 * @param { number } argCount 
+	 */
+	static invokeFromClass(klass, name, argCount) {
+		let method = klass.methods.get(name);
+		if (!method) {
+			VM.runtimeError(`Undefined property '${name.chars}'.`);
+			return false;
+		}
+
+		return VM.call(AS_CLOSURE(method), argCount);
+	}
+
+	/**
+	 * @param { ObjString } name 
+	 * @param { number } argCount 
+	 */
+	static invoke(name, argCount) {
+		let receiver = VM.peek(argCount);
+
+		if (!IS_INSTANCE(receiver)) {
+			VM.runtimeError('Only instances have methods.');
+			return false;
+		}
+
+		let instance = AS_INSTANCE(receiver);
+
+		return VM.invokeFromClass(instance.klass, name, argCount);
 	}
 
 	/**

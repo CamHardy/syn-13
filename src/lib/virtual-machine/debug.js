@@ -84,6 +84,8 @@ export function disassembleInstruction(chunk, offset) {
 			return jumpInstruction('OP_LOOP', -1, chunk, offset, output);
 		case OpCode.OP_CALL:
 			return byteInstruction('OP_CALL', chunk, offset, output);
+		case OpCode.OP_INVOKE:
+			return invokeInstruction('OP_INVOKE', chunk, offset, output);
 		case OpCode.OP_CLOSURE:
 			offset++;
 			let constant = chunk.code[offset++];
@@ -164,4 +166,19 @@ function constantInstruction(name, chunk, offset, output) {
 	console.log(`${output} ${name} ${String(constant).padStart(4, ' ')} '${valueToString(chunk.constants.values[constant])}'`);
 
 	return offset + 2;
+}
+
+/**
+ * @param { string } name 
+ * @param { Chunk } chunk 
+ * @param { number } offset 
+ * @param { string } output 
+ */
+function invokeInstruction(name, chunk, offset, output) {
+	let constant = chunk.code[offset + 1];
+	let argCount = chunk.code[offset + 2];
+	name = name.padEnd(16);
+	console.log(`${output} ${name} (${argCount} args) ${String(constant).padStart(4, ' ')} '${valueToString(chunk.constants.values[constant])}'`);
+
+	return offset + 3;
 }
