@@ -543,6 +543,13 @@ export class VM {
 
 		let instance = AS_INSTANCE(receiver);
 
+		let value = instance.fields.get(name);
+		if (value) {
+			VM.stack[VM.stackTop - argCount - 1] = value;
+
+			return VM.callValue(value, argCount);
+		}
+
 		return VM.invokeFromClass(instance.klass, name, argCount);
 	}
 
