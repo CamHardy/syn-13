@@ -642,6 +642,18 @@ function classDeclaration() {
 	};
 	currentClass = classCompiler;
 
+	if (match('TOKEN_LESS')) {
+		consume('TOKEN_IDENTIFIER', "Expected superclass name.");
+		variable(false);
+
+		if (identifiersEqual(className.lexeme, parser.previous.lexeme)) {
+			error("A class can't inherit from itself.");
+		}
+
+		namedVariable(className, false);
+		emitByte(OpCode.OP_INHERIT);
+	}
+
 	namedVariable(className, false);
 	consume('TOKEN_LEFT_BRACE', "Expected '{' before class body.");
 	while (!check('TOKEN_RIGHT_BRACE') && !check('TOKEN_EOF')) {
