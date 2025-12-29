@@ -71,6 +71,7 @@ const Precedence = Object.freeze({
 /**
  * @typedef { Object } ClassCompiler
  * @property { ClassCompiler } enclosing
+ * @property { boolean } hasSuperclass
  */
 
 let parser = /** @type { Parser } */ ({});
@@ -314,6 +315,18 @@ function this_(canAssign) {
 	}
 
 	variable(false);
+}
+
+/** @param { string } text */
+function syntheticToken(text) {
+	/** @type { Token } */
+	let token = {
+		type: 'TOKEN_IDENTIFIER',
+		lexeme: text,
+		line: -1
+	}
+
+	return token;
 }
 
 /** @param { boolean } canAssign */
@@ -638,7 +651,8 @@ function classDeclaration() {
 
 	/** @type { ClassCompiler } */
 	let classCompiler = {
-		enclosing: currentClass
+		enclosing: currentClass,
+		hasSuperclass: false
 	};
 	currentClass = classCompiler;
 
@@ -650,8 +664,13 @@ function classDeclaration() {
 			error("A class can't inherit from itself.");
 		}
 
+		beginScope();
+		addLocal(syntheticToken('super'));
+		defineVariable(0);
+
 		namedVariable(className, false);
 		emitByte(OpCode.OP_INHERIT);
+		classCompiler.hasSuperclass = true;
 	}
 
 	namedVariable(className, false);
@@ -661,6 +680,10 @@ function classDeclaration() {
 	}
 	consume('TOKEN_RIGHT_BRACE', "Expected '}' after class body.");
 	emitByte(OpCode.OP_POP);
+
+	if (classCompiler.hasSuperclass) {
+		endScope();
+	}
 
 	currentClass = currentClass.enclosing;
 }
