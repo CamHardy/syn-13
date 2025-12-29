@@ -374,6 +374,14 @@ export class VM {
 					case OpCode.OP_CLASS:
 						VM.push(OBJ_VAL(newClass(READ_STRING())));
 						break;
+					case OpCode.OP_INHERIT: {
+						let superclass = VM.peek(1);
+						let subclass = AS_CLASS(VM.peek(0));
+						AS_CLASS(superclass).methods.addAll(subclass.methods);
+						VM.pop();
+
+						break;
+					}
 					case OpCode.OP_METHOD:
 						VM.defineMethod(READ_STRING());
 						break;

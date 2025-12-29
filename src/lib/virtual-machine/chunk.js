@@ -38,7 +38,8 @@ export const OpCode = Object.freeze({
 	OP_CLOSE_UPVALUE: 0x1f,
 	OP_RETURN: 0x20,
 	OP_CLASS: 0x21,
-	OP_METHOD: 0x22
+	OP_INHERIT: 0x22,
+	OP_METHOD: 0x23
 });
 
 export class Chunk {
