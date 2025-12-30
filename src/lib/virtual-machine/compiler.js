@@ -330,6 +330,23 @@ function syntheticToken(text) {
 }
 
 /** @param { boolean } canAssign */
+function super_(canAssign) {
+	if (currentClass === null) {
+		error("Can't use 'super' outside of a class.");
+	} else if (!currentClass.hasSuperclass) {
+		error("Can't use 'super' in a class with no superclass.");
+	}
+
+	consume('TOKEN_DOT', "Expected '.' after 'super'.");
+	consume('TOKEN_IDENTIFIER', 'Expected superclass method name.');
+	let name = identifierConstant(parser.previous);
+
+	namedVariable(syntheticToken('this'), false);
+	namedVariable(syntheticToken('super'), false);
+	emitBytes(OpCode.OP_GET_SUPER, name);
+}
+
+/** @param { boolean } canAssign */
 function unary(canAssign) {
 	let operatorType = parser.previous.type;
 
@@ -379,7 +396,7 @@ let rules = {
 	['TOKEN_OR']: { prefix: null, infix: or_, precedence: Precedence.PREC_OR },
 	['TOKEN_PRINT']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_RETURN']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
-	['TOKEN_SUPER']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
+	['TOKEN_SUPER']: { prefix: super_, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_THIS']: { prefix: this_, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_TRUE']: { prefix: literal, infix: null, precedence: Precedence.PREC_NONE },
 	['TOKEN_VAR']: { prefix: null, infix: null, precedence: Precedence.PREC_NONE },
