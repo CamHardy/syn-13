@@ -264,6 +264,15 @@ export class VM {
 						VM.push(value);
 						break;
 					}
+					case OpCode.OP_GET_SUPER: {
+						let name = READ_STRING();
+						let superclass = AS_CLASS(VM.pop());
+
+						if (!VM.bindMethod(superclass, name)) {
+							return 'INTERPRET_RUNTIME_ERROR';
+						}
+						break;
+					}
 					case OpCode.OP_EQUAL: {
 						let b = VM.pop();
 						let a = VM.pop();
