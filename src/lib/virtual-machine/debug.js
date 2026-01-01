@@ -88,6 +88,8 @@ export function disassembleInstruction(chunk, offset) {
 			return byteInstruction('OP_CALL', chunk, offset, output);
 		case OpCode.OP_INVOKE:
 			return invokeInstruction('OP_INVOKE', chunk, offset, output);
+		case OpCode.OP_SUPER_INVOKE:
+			return invokeInstruction('OP_SUPER_INVOKE', chunk, offset, output);
 		case OpCode.OP_CLOSURE:
 			offset++;
 			let constant = chunk.code[offset++];

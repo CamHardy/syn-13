@@ -342,8 +342,14 @@ function super_(canAssign) {
 	let name = identifierConstant(parser.previous);
 
 	namedVariable(syntheticToken('this'), false);
-	namedVariable(syntheticToken('super'), false);
-	emitBytes(OpCode.OP_GET_SUPER, name);
+	if (match('TOKEN_LEFT_PAREN')) {
+		let argCount = argumentList();
+		emitBytes(OpCode.OP_SUPER_INVOKE, name);
+		emitByte(argCount);
+	} else {
+		namedVariable(syntheticToken('super'), false);
+		emitBytes(OpCode.OP_GET_SUPER, name);
+	}
 }
 
 /** @param { boolean } canAssign */

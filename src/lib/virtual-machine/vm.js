@@ -341,6 +341,16 @@ export class VM {
 						frame = VM.frames[VM.frameCount - 1];
 						break;
 					}
+					case OpCode.OP_SUPER_INVOKE: {
+						let method = READ_STRING();
+						let argCount = READ_BYTE();
+						let superclass = AS_CLASS(VM.pop());
+						if (!VM.invokeFromClass(superclass, method, argCount)) {
+							return 'INTERPRET_RUNTIME_ERROR';
+						}
+						frame = VM.frames[VM.frameCount - 1];
+						break;
+					}
 					case OpCode.OP_CLOSURE: {
 						let func = AS_FUNCTION(READ_CONSTANT());
 						let closure = newClosure(func);
